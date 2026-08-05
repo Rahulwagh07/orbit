@@ -1,0 +1,16 @@
+{
+  "name": "@repo/gateway",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@repo/db": "*",
+    "@repo/env": "*",
+    "tsx": "^4",
+    "ws": "^8"
+  },
+  "devDependencies": {
+    "@types/ws": "^8"
+  }
+}

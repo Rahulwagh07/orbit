@@ -1,0 +1,164 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String      @id @default(uuid())
+  email     String      @unique
+  name      String?
+  googleId  String?     @unique
+  avatarUrl String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  workspaces Workspace[]
+  sessions   Session[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Workspace {
+  id        String      @id @default(uuid())
+  name      String
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  @@index([userId])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  windows   Window[]
+  instances ApplicationInstance[]
+}
+
+model Application {
+  id        String      @id @default(uuid())
+  type      ApplicationType
+  name      String
+  createdAt DateTime    @default(now())
+
+  windows   Window[]
+  instances ApplicationInstance[]
+}
+
+model Window {
+  id            String      @id @default(uuid())
+  workspaceId   String
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id])
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  instanceId    String?     @unique
+  instance      ApplicationInstance? @relation(fields: [instanceId], references: [id])
+
+  @@index([workspaceId])
+  @@index([applicationId])
+
+  title         String
+
+  x             Int         @default(100)
+  y             Int         @default(100)
+  width         Int         @default(1280)
+  height        Int         @default(720)
+
+  zIndex        Int         @default(1)
+
+  isMinimized   Boolean     @default(false)
+  isMaximized   Boolean     @default(false)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model ApplicationInstance {
+  id            String      @id @default(uuid())
+  shortId       String      @unique
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  workspaceId   String
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id])
+
+  window        Window?
+
+  @@index([applicationId])
+  @@index([workspaceId])
+
+  runtime       String      @default("docker")
+  containerId   String?
+
+  status        InstanceStatus @default(PENDING)
+  deployedUrl   String?
+  port          Int?
+
+  region        String      @default("local")
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  lastHeartbeatAt DateTime?
+
+  deployment    Deployment?
+}
+
+model Deployment {
+  id            String      @id @default(uuid())
+
+  instanceId    String      @unique
+  instance      ApplicationInstance @relation(fields: [instanceId], references: [id])
+
+  @@index([instanceId])
+
+  phase         DeploymentPhase @default(CREATING_RESOURCES)
+  phaseDisplay  String      @default("Setting up environment...")
+  progress      Int         @default(0)
+
+  isRetryable   Boolean     @default(false)
+
+  errorCode     String?
+  errorMessage  String?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum ApplicationType {
+  CHROMIUM
+}
+
+enum InstanceStatus {
+  PENDING
+  CREATING
+  STARTING
+  WAITING_READY
+  READY
+  STOPPING
+  STOPPED
+  FAILED
+}
+
+enum DeploymentPhase {
+  CREATING_RESOURCES
+  CONTAINER_STARTING
+  WAITING_READY
+  CONFIGURING_NETWORK
+  READY
+  FAILED
+}

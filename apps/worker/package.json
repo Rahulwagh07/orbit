@@ -1,0 +1,19 @@
+{
+  "name": "@repo/worker",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@repo/container-runtime": "*",
+    "@repo/db": "*",
+    "@repo/deployment": "*",
+    "@repo/env": "*",
+    "@repo/protocol": "*",
+    "@repo/redis": "*",
+    "tsx": "^4"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*"
+  }
+}
