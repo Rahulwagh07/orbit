@@ -97,7 +97,7 @@ export async function GET() {
 
   // Map to frontend expected shape
   const result = await Promise.all(
-    windows.map(async w => {
+    windows.map(async (w: { id: string; applicationId: string; instanceId: string | null }) => {
       // For MVP, look up instance if exists
       let status = 'ready'
       let shortId = ''

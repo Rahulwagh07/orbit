@@ -42,38 +42,60 @@ wss.on("connection", async (ws, req) => {
   const agentWs = new WebSocket(`ws://127.0.0.1:${portNum}`);
 
   agentWs.on("open", () => {
-    console.log("Connected to runtime agent");
+    console.log(`[WebRTC Signaling] Connected to runtime agent for port ${portNum}`);
+    // Send signaling initialized notification
+    ws.send(JSON.stringify({ type: "signaling_ready", port: portNum }));
   });
 
   agentWs.on("message", (data, isBinary) => {
     if (ws.readyState === WebSocket.OPEN) {
+      try {
+        if (!isBinary) {
+          const msg = JSON.parse(data.toString());
+          if (msg.type === "offer" || msg.type === "answer" || msg.type === "candidate") {
+            console.log(`[WebRTC Signaling] Agent -> Browser: ${msg.type}`);
+          }
+        }
+      } catch (e) {
+        // Ignored if non-JSON binary payload
+      }
       ws.send(data, { binary: isBinary });
     }
   });
 
   agentWs.on("close", () => {
-    console.log("Agent connection closed");
+    console.log(`[WebRTC Signaling] Agent connection closed for port ${portNum}`);
     if (ws.readyState === WebSocket.OPEN) {
       ws.close(1011, "Agent disconnected");
     }
   });
 
   agentWs.on("error", (e) => {
-    console.error("Agent WS error", e);
+    console.error(`[WebRTC Signaling] Agent WS error for port ${portNum}:`, e);
   });
 
   ws.on("message", (data, isBinary) => {
+    if (!isBinary) {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.type === "offer" || msg.type === "answer" || msg.type === "candidate") {
+          console.log(`[WebRTC Signaling] Browser -> Agent: ${msg.type}`);
+        }
+      } catch (e) {
+        // Ignored
+      }
+    }
     if (agentWs.readyState === WebSocket.OPEN) {
       agentWs.send(data, { binary: isBinary });
     }
   });
 
   ws.on("close", () => {
-    console.log("Browser disconnected");
+    console.log(`[WebRTC Signaling] Browser disconnected for port ${portNum}`);
     agentWs.close();
   });
 });
 
 server.listen(4001, () => {
-  console.log("Gateway listening on ws://localhost:4001");
+  console.log("Gateway WebRTC Signaling Server listening on ws://localhost:4001");
 });
