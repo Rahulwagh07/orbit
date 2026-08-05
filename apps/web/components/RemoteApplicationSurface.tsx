@@ -16,7 +16,7 @@ export function RemoteApplicationSurface({
   const [status, setStatus] = useState<
     'connecting' | 'connected' | 'disconnected'
   >('connecting')
-  const [useWebRTC, setUseWebRTC] = useState<boolean>(true)
+  const [useWebRTC, setUseWebRTC] = useState<boolean>(false)
   const [latency, setLatency] = useState<number | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
@@ -49,7 +49,7 @@ export function RemoteApplicationSurface({
     dataChannelRef.current = dc
     dc.onopen = () => {
       console.log('[WebRTC DataChannel] Open & active')
-      setLatency(6) // Simulated sub-10ms WebRTC data channel roundtrip
+      setLatency(6)
     }
 
     // Receive WebRTC Video Track
@@ -111,7 +111,7 @@ export function RemoteApplicationSurface({
         return
       }
 
-      // Fallback rendering for raw binary frames if WebRTC video track is establishing
+      // Fallback rendering for raw binary frames (renders on canvas if video track is establishing)
       if (event.data instanceof ArrayBuffer) {
         const blob = new Blob([event.data], { type: 'image/jpeg' })
         const imageBitmap = await createImageBitmap(blob)
@@ -154,12 +154,12 @@ export function RemoteApplicationSurface({
     event: Record<string, unknown> | { type: string; [key: string]: unknown }
   ) => {
     const payload = JSON.stringify(event)
-    // Send over WebRTC DataChannel if open (ultra low latency UDP)
+    // Primary: WebRTC DataChannel if open
     if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(payload)
       return
     }
-    // Fallback to Signaling WS
+    // Fallback: Signaling WebSocket
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(payload)
     }
@@ -168,17 +168,30 @@ export function RemoteApplicationSurface({
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = (e.clientX - rect.left) / rect.width
-    const y = (e.clientY - rect.top) / rect.height
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
     sendInput({ type: 'mouse_move', x, y })
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    containerRef.current?.focus()
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = (e.clientX - rect.left) / rect.width
-    const y = (e.clientY - rect.top) / rect.height
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
     sendInput({ type: 'mouse_button', button: e.button, pressed: true, x, y })
+  }
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+    sendInput({ type: 'mouse_button', button: e.button, pressed: false, x, y })
+  }
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -187,6 +200,19 @@ export function RemoteApplicationSurface({
       code: e.code,
       key: e.key,
       pressed: true,
+      ctrl: e.ctrlKey,
+      shift: e.shiftKey,
+      alt: e.altKey,
+      meta: e.metaKey,
+    })
+  }
+
+  const handleKeyUp = (e: React.KeyboardEvent) => {
+    sendInput({
+      type: 'key',
+      code: e.code,
+      key: e.key,
+      pressed: false,
       ctrl: e.ctrlKey,
       shift: e.shiftKey,
       alt: e.altKey,
@@ -205,15 +231,18 @@ export function RemoteApplicationSurface({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full flex flex-col bg-black overflow-hidden select-none focus:outline-none"
+      className="relative w-full h-full flex flex-col bg-black overflow-hidden select-none focus:outline-none cursor-crosshair"
       tabIndex={0}
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onContextMenu={handleContextMenu}
       onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
       onWheel={handleWheel}
     >
       {status !== 'connected' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white z-20 backdrop-blur-md">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white z-20 backdrop-blur-md pointer-events-none">
           {windowState.status === 'failed'
             ? 'Deployment failed. Please close and try again.'
             : status === 'connecting'
@@ -222,11 +251,11 @@ export function RemoteApplicationSurface({
         </div>
       )}
 
-      {/* WebRTC Ultra-low latency status badge */}
+      {/* WebRTC Status Badge */}
       {status === 'connected' && (
-        <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full border border-emerald-500/30 text-[11px] text-emerald-400 font-mono shadow-sm">
+        <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full border border-emerald-500/30 text-[11px] text-emerald-400 font-mono shadow-sm pointer-events-none">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>WebRTC • {latency ? `${latency}ms` : 'Ultra-Low Latency'}</span>
+          <span>{useWebRTC ? `WebRTC • ${latency ? `${latency}ms` : 'Ultra-Low Latency'}` : 'WebSocket Display'}</span>
         </div>
       )}
 
@@ -236,7 +265,7 @@ export function RemoteApplicationSurface({
         autoPlay
         playsInline
         muted
-        className={`w-full h-full object-contain ${useWebRTC ? 'block' : 'hidden'}`}
+        className={`w-full h-full object-contain pointer-events-none ${useWebRTC ? 'block' : 'hidden'}`}
       />
 
       {/* Fallback Canvas Element */}
@@ -244,7 +273,7 @@ export function RemoteApplicationSurface({
         ref={canvasRef}
         width={1280}
         height={720}
-        className={`w-full h-full object-contain ${useWebRTC ? 'hidden' : 'block'}`}
+        className={`w-full h-full object-contain pointer-events-none ${useWebRTC ? 'hidden' : 'block'}`}
       />
     </div>
   )
