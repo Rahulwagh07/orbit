@@ -12,7 +12,7 @@ if (fs.existsSync(rootEnvPath)) {
 }
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.string().url().default("postgresql://postgres:postgres@localhost:5432/cloud_infinity"),
   REDIS_URL: z.string().url().default("redis://localhost:6379"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   GOOGLE_CLIENT_ID: z.string().optional(),

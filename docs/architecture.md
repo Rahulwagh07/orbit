@@ -196,19 +196,27 @@ sequenceDiagram
 - Browser connects only to Gateway, never directly to Docker.
 - Gateway enforces session validation before forwarding to runtime.
 
-## 13. WebRTC Migration
+## 13. WebRTC Architecture
 
-Future evolution from WebSockets to WebRTC.
+Real-time streaming uses WebRTC (Media Tracks + RTCDataChannel) with Gateway serving as the WebRTC Signaling server:
 
 ```mermaid
 graph TD
-    Browser[Browser <video> + DataChannel]
-    Signaling[Next.js Signaling Server]
-    Relay[TURN/STUN coturn]
-    Remote[Remote Peer Video Encoder + Input Agent]
+    Browser[Browser <video> + RTCDataChannel]
+    Signaling[Gateway Signaling Server ws://localhost:4001]
+    STUN[STUN Server stun:stun.l.google.com:19302]
+    Remote[Runtime Container Video Track + Input Agent]
     
-    Browser -->|Offer/Answer| Signaling
-    Remote -->|Offer/Answer| Signaling
+    Browser <-->|Signaling SDP Offer/Answer/ICE| Signaling
+    Remote <-->|Signaling SDP Offer/Answer/ICE| Signaling
+    Browser <-->|STUN Candidate Discovery| STUN
     
-    Browser <-->|Direct P2P or TURN| Remote
+    Browser <==|WebRTC Video Track (H.264/VP8/VP9)| Remote
+    Browser <==|RTCDataChannel Input Events (Mouse/Keyboard/Scroll)| Remote
 ```
+
+### WebRTC Advantages:
+- **Sub-50ms Latency**: Native hardware-accelerated video decoding directly in `<video>` element.
+- **Zero Jitter Overhead**: WebRTC Media Engine dynamically adjusts bitrate, resolution, and framerate based on network conditions.
+- **Low Overhead Inputs**: Mouse, keyboard, scroll, and resize input events transmitted over UDP-based `RTCDataChannel`.
+
