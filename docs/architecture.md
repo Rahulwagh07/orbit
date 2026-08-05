@@ -16,8 +16,9 @@ graph TD
     
     Runtime --> Chromium[Chromium Instance\n+ Xvfb + Agents]
     
-    Web -->|WebSocket\nBinary Frames + Input| Gateway[Gateway Node.js]
+    Web -->|WebRTC Signaling SDP/ICE| Gateway[Gateway Node.js]
     Gateway --> Chromium
+    Web <==|WebRTC Video Track + RTCDataChannel| Chromium
 ```
 
 ## 2. Control Plane
@@ -42,19 +43,19 @@ graph TD
 
 ## 3. Data Plane
 
-The Data Plane routes high-frequency real-time traffic.
+The Data Plane routes high-frequency real-time WebRTC media and input traffic.
 
 ```mermaid
 graph TD
-    Browser[Browser\nCanvas + Input]
-    Gateway[Data Plane Gateway]
+    Browser[Browser\nVideo Surface + RTCDataChannel]
+    Gateway[WebRTC Signaling Gateway]
     Instance[Chromium Instance\nDisplay/Input Agents]
     
-    Browser -->|Input Events\nWebSocket| Gateway
-    Gateway -->|Forward Input| Instance
+    Browser <-->|Signaling SDP Offer/Answer/Candidate| Gateway
+    Gateway <-->|Forward Signaling| Instance
     
-    Instance -->|JPEG Frames\nWebSocket| Gateway
-    Gateway -->|Forward Frames| Browser
+    Instance <==|WebRTC Media Track H.264/VP8/VP9| Browser
+    Browser <==|Input Events RTCDataChannel UDP| Instance
 ```
 
 ## 4. Deployment Lifecycle
@@ -119,15 +120,14 @@ graph TD
 sequenceDiagram
     participant Xvfb as Xvfb Framebuffer
     participant DisplayAgent as Display Agent
-    participant Gateway
-    participant Browser as Browser Canvas
+    participant WebRTC as WebRTC Media Engine
+    participant Browser as Browser Video Surface
 
-    loop Every Frame
+    loop Real-Time Video Stream
         Xvfb->>DisplayAgent: Read Framebuffer
-        DisplayAgent->>DisplayAgent: Encode JPEG
-        DisplayAgent->>Gateway: Binary Message [Header | JPEG]
-        Gateway->>Browser: Binary Message
-        Browser->>Browser: ArrayBuffer -> Blob -> ImageBitmap -> Canvas
+        DisplayAgent->>WebRTC: Encode Video Track (H.264/VP8)
+        WebRTC->>Browser: RTP Media Stream (Sub-50ms)
+        Browser->>Browser: Hardware GPU Video Decoding (<video>)
     end
 ```
 
@@ -136,12 +136,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Browser as Browser
-    participant Gateway
+    participant RTCDataChannel as WebRTC RTCDataChannel (UDP)
     participant InputAgent as Input Agent
     participant X11
 
-    Browser->>Gateway: JSON {type: "mouse_move", x: 0.5, y: 0.5}
-    Gateway->>InputAgent: JSON
+    Browser->>RTCDataChannel: JSON {type: "mouse_move", x: 0.5, y: 0.5}
+    RTCDataChannel->>InputAgent: Low-latency Datagram
     InputAgent->>InputAgent: Translate to 1280x720 (640, 360)
     InputAgent->>X11: Inject X11 Event
     X11->>Chromium: Pointer Move Event
