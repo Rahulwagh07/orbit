@@ -1,80 +1,121 @@
 "use client";
 
 import React from "react";
+import { Laptop, Shield, Check, Zap, Cpu, BatteryCharging } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function ArchitectureDiagram() {
   return (
-    <section id="architecture" className="py-32 px-6">
-      <div className="max-w-4xl mx-auto text-center mb-20">
-        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
-          One interface. <br className="hidden md:block" />
-          Compute where it belongs.
-        </h2>
-      </div>
-
-      <div className="max-w-4xl mx-auto relative">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-0">
-          
-          {/* CONTROL PLANE */}
-          <div className="w-full md:w-[35%]">
-            <h3 className="text-xs font-bold tracking-widest text-white/40 mb-4">CONTROL PLANE</h3>
-            <p className="text-sm text-white/70 font-medium mb-6">
-              Manages the lifecycle of application instances and tells the browser where its compute lives.
+    <section id="use-cases" className="py-28 px-6 bg-[#09090b] border-t border-white/10">
+      <div className="max-w-5xl mx-auto space-y-24">
+        
+        {/* Split Feature 1: Lightweight Hardware (Text Left, Visual Right) */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className="flex-1 space-y-4 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-indigo-400 font-semibold">
+              <Laptop className="w-3.5 h-3.5" />
+              <span>Lightweight Devices</span>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Turn any Chromebook or tablet into a workstation.
+            </h3>
+            <p className="text-sm md:text-base text-zinc-400 leading-relaxed font-normal">
+              Heavy software consumes massive CPU cycles and drains laptop battery. With Cloud Infinity, all computation happens in high-speed cloud clusters.
             </p>
-            <div className="bg-[#141414] border border-white/10 rounded-xl p-6 shadow-sm">
-              <ul className="space-y-3 font-mono text-xs text-white/80">
-                <li className="flex items-center gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Create
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Schedule
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Start
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Recover
-                </li>
-              </ul>
+            <div className="space-y-2 pt-2 text-xs font-mono text-zinc-300">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>Zero CPU fan noise & battery drain</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>Instant 60 FPS WebRTC display stream</span>
+              </div>
             </div>
           </div>
 
-          {/* DIAGRAM */}
-          <div className="w-full md:w-[30%] flex justify-center hidden md:flex relative h-64">
-             {/* Lines */}
-             <svg className="absolute inset-0 w-full h-full" overflow="visible">
-                {/* Control plane path */}
-                <path d="M 0 100 C 50 100 50 20 100 20" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="1.5" strokeDasharray="4 4" />
-                <path d="M 100 20 C 150 20 150 100 200 100" fill="none" stroke="white" strokeOpacity="0.2" strokeWidth="1.5" strokeDasharray="4 4" />
-                
-                {/* Data plane path */}
-                <path d="M 0 180 C 100 180 100 220 200 220" fill="none" stroke="white" strokeOpacity="0.8" strokeWidth="2" />
-                <path d="M 200 220 C 100 220 100 180 0 180" fill="none" stroke="white" strokeOpacity="0.8" strokeWidth="2" />
-             </svg>
-          </div>
+          {/* Feature 1 Visual Card */}
+          <div className="flex-1 w-full bg-[#121215] rounded-2xl border border-white/10 p-6 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3 text-zinc-300 font-bold">
+              <span>LOCAL DEVICE SPECS</span>
+              <span className="text-emerald-400">OPTIMIZED</span>
+            </div>
 
-          {/* DATA PLANE */}
-          <div className="w-full md:w-[35%] text-right">
-            <h3 className="text-xs font-bold tracking-widest text-white/40 mb-4">DATA PLANE</h3>
-            <p className="text-sm text-white/70 font-medium mb-6">
-              High-frequency traffic takes the direct realtime path rather than passing through the control API.
-            </p>
-            <div className="bg-[#141414] text-white rounded-xl p-6 shadow-xl text-left border border-white/10">
-              <ul className="space-y-4 font-mono text-xs">
-                <li className="flex justify-between items-center text-emerald-400">
-                  <span>Display</span>
-                  <span>← 60fps</span>
-                </li>
-                <li className="flex justify-between items-center text-blue-400">
-                  <span>Input</span>
-                  <span>→ &lt;20ms</span>
-                </li>
-              </ul>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-[#09090b] rounded-xl border border-white/10">
+                <span className="text-[10px] text-zinc-500 block">CPU LOAD</span>
+                <span className="text-emerald-400 font-bold text-sm">2% (Idle)</span>
+              </div>
+              <div className="p-3 bg-[#09090b] rounded-xl border border-white/10">
+                <span className="text-[10px] text-zinc-500 block">BATTERY LIFE</span>
+                <span className="text-white font-bold text-sm">12+ Hours</span>
+              </div>
+              <div className="p-3 bg-[#09090b] rounded-xl border border-white/10">
+                <span className="text-[10px] text-zinc-500 block">DEVICE TEMP</span>
+                <span className="text-emerald-400 font-bold text-sm">34°C (Cool)</span>
+              </div>
+              <div className="p-3 bg-[#09090b] rounded-xl border border-white/10">
+                <span className="text-[10px] text-zinc-500 block">FAN NOISE</span>
+                <span className="text-white font-bold text-sm">0 dB (Silent)</span>
+              </div>
             </div>
           </div>
-          
         </div>
+
+        {/* Split Feature 2: Encrypted Sandboxes (Visual Left, Text Right) */}
+        <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-12">
+          {/* Feature 2 Visual Card */}
+          <div className="flex-1 w-full bg-[#121215] rounded-2xl border border-white/10 p-6 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3 text-zinc-300 font-bold">
+              <span>SANDBOX SECURITY STATE</span>
+              <span className="text-indigo-400">ENCRYPTED</span>
+            </div>
+
+            <div className="p-4 bg-[#09090b] rounded-xl border border-white/10 space-y-2">
+              <div className="flex justify-between text-zinc-400">
+                <span>Local Disk Footprint</span>
+                <span className="text-emerald-400 font-bold">0 MB Saved</span>
+              </div>
+              <div className="flex justify-between text-zinc-400">
+                <span>Session Encryption</span>
+                <span className="text-indigo-400 font-bold">AES-256-GCM</span>
+              </div>
+              <div className="flex justify-between text-zinc-400">
+                <span>Isolated Sandbox</span>
+                <span className="text-emerald-400 font-bold">Ephemeral Container</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-4 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-indigo-400 font-semibold">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Isolated Privacy</span>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Isolated private web browsing & testing.
+            </h3>
+            <p className="text-sm md:text-base text-zinc-400 leading-relaxed font-normal">
+              Test untrusted links, inspect suspicious web code, or browse sensitive data inside ephemeral cloud sandboxes. Zero files or tracking cookies remain on your physical disk.
+            </p>
+            <div className="space-y-2 pt-2 text-xs font-mono text-zinc-300">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>100% ephemeral cloud container isolation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>Zero local IP address exposure</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   );
 }
+
+
+
+

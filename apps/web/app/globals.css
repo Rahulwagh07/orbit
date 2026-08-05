@@ -1,13 +1,69 @@
 @import "tailwindcss";
 
 @theme {
-  --color-mac-bg: #1c1c1e;
-  --color-mac-dock: rgba(255, 255, 255, 0.1);
-  --color-mac-border: rgba(255, 255, 255, 0.15);
+  --color-mac-bg: #18181b;
+  --color-mac-dock: rgba(255, 255, 255, 0.08);
+  --color-mac-border: rgba(255, 255, 255, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   padding: 0;
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #09090b;
+  color: #f4f4f5;
+  overflow-x: hidden;
 }
+
+/* Rich Gradient Typography */
+.text-gradient-violet {
+  background: linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-indigo {
+  background: linear-gradient(135deg, #ffffff 0%, #818cf8 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Bento Card Styling */
+.bento-card {
+  background: #121215;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.1);
+  transform: translateY(-2px);
+}
+
+.bento-card-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+}
+
+/* Subtle Spotlight & Dot Grid */
+.glow-spotlight-violet {
+  background: radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 75%);
+}
+
+.bg-dot-grid {
+  background-size: 32px 32px;
+  background-image: radial-gradient(circle at 1.5px 1.5px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+}
+
+
+
+
+
+
