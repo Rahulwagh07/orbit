@@ -7,6 +7,8 @@ export interface ContainerConfig {
   instanceId: string;
   image: string;
   port: number;
+  /** UDP port range published for WebRTC/ICE media, [min, max] */
+  udpPorts?: [number, number];
 }
 
 export interface ContainerRuntime {
@@ -34,8 +36,19 @@ export class DockerContainerRuntime implements ContainerRuntime {
 
     const dockerArgs = [
       "run", "-d",
+      "--security-opt", "seccomp=unconfined",
+      ...(process.env.RUNTIME_ENABLE_GPU === "1" ? ["--gpus", "all"] : []),
       "--name", containerName,
       "-p", `${config.port}:8080`,
+      ...(config.udpPorts
+        ? [
+            "-p", `${config.udpPorts[0]}-${config.udpPorts[1]}:${config.udpPorts[0]}-${config.udpPorts[1]}/udp`,
+            "-e", `ICE_PORT_MIN=${config.udpPorts[0]}`,
+            "-e", `ICE_PORT_MAX=${config.udpPorts[1]}`,
+          ]
+        : []),
+      "-e", `RUNTIME_ENABLE_GPU=${process.env.RUNTIME_ENABLE_GPU === "1" ? "1" : "0"}`,
+      "-e", `VIDEO_ENCODER=${process.env.VIDEO_ENCODER || "libx264"}`,
       "--shm-size=1g",
       config.image
     ];

@@ -11,18 +11,29 @@ export function RemoteApplicationSurface({
   windowState,
 }: RemoteApplicationSurfaceProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<
     'connecting' | 'connected' | 'disconnected'
   >('connecting')
-  const [useWebRTC, setUseWebRTC] = useState<boolean>(true)
   const [latency, setLatency] = useState<number | null>(null)
+  const [audioBlocked, setAudioBlocked] = useState(false)
+  const audioUnlockedRef = useRef(false)
+  const videoReadyRef = useRef(false)
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
   const dataChannelRef = useRef<RTCDataChannel | null>(null)
+  const pointerChannelRef = useRef<RTCDataChannel | null>(null)
+  const pendingPointerRef = useRef<Record<string, unknown> | null>(null)
+  const pointerFrameRef = useRef<number | null>(null)
+  const pendingScrollRef = useRef({ deltaX: 0, deltaY: 0 })
+  const scrollFrameRef = useRef<number | null>(null)
+  const pressedKeysRef = useRef(new Set<string>())
 
   useEffect(() => {
+    const videoElement = videoRef.current
+    const audioElement = audioRef.current
     if (windowState.status === 'failed') {
       setStatus('disconnected')
       return
@@ -31,157 +42,366 @@ export function RemoteApplicationSurface({
     const url = windowState.deployedUrl
     if (!url) return
 
-    const ws = new WebSocket(url)
-    ws.binaryType = 'arraybuffer'
-    wsRef.current = ws
+    let disposed = false
+    let retries = 0
+    let ws: WebSocket | null = null
+    let pc: RTCPeerConnection | null = null
+    let connecting = false
+    const sockets = new Set<WebSocket>()
 
-    // Initialize WebRTC PeerConnection
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    })
-    peerConnectionRef.current = pc
-
-    // Set up RTCDataChannel for input events
-    const dc = pc.createDataChannel('input', { ordered: true })
-    dataChannelRef.current = dc
-    dc.onopen = () => {
-      console.log('[WebRTC DataChannel] Open & active')
-      setLatency(6) // Simulated sub-10ms WebRTC data channel roundtrip
-    }
-
-    // Receive WebRTC Video Track
-    pc.ontrack = (event) => {
-      console.log('[WebRTC Track] Received video stream track')
-      if (videoRef.current && event.streams[0]) {
-        videoRef.current.srcObject = event.streams[0]
-        setUseWebRTC(true)
-        setStatus('connected')
+    const closeSocket = (socket: WebSocket) => {
+      if (socket.readyState === WebSocket.CONNECTING) {
+        socket.addEventListener('open', () => socket.close(), { once: true })
+      } else if (socket.readyState === WebSocket.OPEN) {
+        socket.close()
       }
     }
 
-    // ICE Candidates forwarding over Signaling WS
-    pc.onicecandidate = (event) => {
-      if (event.candidate && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          type: 'candidate',
-          candidate: event.candidate
-        }))
+    const scheduleReconnect = (
+      sessionSocket: WebSocket,
+      sessionPc: RTCPeerConnection,
+    ) => {
+      if (disposed || reconnectTimerRef.current !== null) return
+      if (ws !== sessionSocket && peerConnectionRef.current !== sessionPc) return
+      if (ws === sessionSocket) {
+        ws = null
+        closeSocket(sessionSocket)
       }
-    }
-
-    ws.onopen = async () => {
-      setStatus('connected')
-      try {
-        // Create SDP Offer for WebRTC
-        const offer = await pc.createOffer({
-          offerToReceiveVideo: true,
-          offerToReceiveAudio: true
-        })
-        await pc.setLocalDescription(offer)
-        ws.send(JSON.stringify({
-          type: 'offer',
-          sdp: offer.sdp
-        }))
-      } catch (err) {
-        console.warn('[WebRTC] Signaling offer creation fallback:', err)
+      if (peerConnectionRef.current === sessionPc) {
+        peerConnectionRef.current = null
+        sessionPc.close()
       }
+      const delay = Math.min(4000, 250 * 2 ** Math.min(retries, 4))
+      retries++
+      setStatus(videoReadyRef.current ? 'connected' : 'connecting')
+      reconnectTimerRef.current = setTimeout(() => {
+        reconnectTimerRef.current = null
+        connect()
+      }, delay)
     }
 
-    ws.onclose = () => {
-      setStatus('disconnected')
-      pc.close()
-    }
+    const connect = () => {
+      if (
+        disposed ||
+        connecting ||
+        (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN))
+      ) return
 
-    ws.onmessage = async (event) => {
-      // Handle signaling JSON messages
-      if (typeof event.data === 'string') {
+      const socket = new WebSocket(url)
+      connecting = true
+      sockets.add(socket)
+      ws = socket
+      socket.binaryType = 'arraybuffer'
+      wsRef.current = socket
+      socket.onopen = () => {
+        connecting = false
+      }
+
+      const currentPc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      })
+      pc = currentPc
+      peerConnectionRef.current = currentPc
+      let firstFrameTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+        if (!disposed && peerConnectionRef.current === currentPc && !videoReadyRef.current) {
+          scheduleReconnect(socket, currentPc)
+        }
+      }, 10000)
+
+      // Receive video: agent answers with an H264 MediaStreamTrack
+      currentPc.addTransceiver('video', { direction: 'recvonly' })
+      currentPc.addTransceiver('audio', { direction: 'recvonly' })
+
+      // Input / latency channel
+      const dc = currentPc.createDataChannel('input', { ordered: true })
+      // Pointer motion is transient. Do not let stale moves queue ahead of
+      // clicks or keys on the reliable control channel.
+      const pointerDc = currentPc.createDataChannel('pointer', {
+        ordered: false,
+        maxRetransmits: 0,
+      })
+      dataChannelRef.current = dc
+      pointerChannelRef.current = pointerDc
+
+      dc.onopen = () => {
+        if (disposed || peerConnectionRef.current !== currentPc) return
+        // Measure real roundtrip latency over the data channel
+        setLatency(null)
+        const timer = setInterval(() => {
+          if (dc.readyState === 'open') {
+            dc.send(JSON.stringify({ type: 'ping', t: performance.now() }))
+          }
+        }, 2000)
+        dc.onclose = () => clearInterval(timer)
+      }
+
+      dc.onmessage = (event) => {
+        if (disposed || peerConnectionRef.current !== currentPc) return
+        try {
+          const msg = JSON.parse(String(event.data))
+          if (msg.type === 'pong' && typeof msg.t === 'number') {
+            setLatency(Math.max(0, performance.now() - msg.t))
+          }
+        } catch {
+          // ignore non-JSON
+        }
+      }
+
+      currentPc.ontrack = (event) => {
+        if (disposed || peerConnectionRef.current !== currentPc) return
+        const stream = event.streams[0] ?? new MediaStream([event.track])
+        if (event.track.kind === 'audio') {
+          const audio = audioRef.current
+          if (!audio) return
+          audio.srcObject = stream
+          const playAudio = () => {
+            audio.play().then(() => setAudioBlocked(false)).catch(() => setAudioBlocked(true))
+          }
+          audio.onloadedmetadata = playAudio
+          playAudio()
+          return
+        }
+        const video = videoRef.current
+        if (video) {
+          // Use the stream supplied by the track event. It is the stream the
+          // browser's RTP receiver owns, so attaching it directly avoids a
+          // blank decoder caused by moving a remote track between streams.
+          const videoStream = event.streams[0] ?? new MediaStream([event.track])
+          if (video.srcObject !== videoStream) {
+            video.srcObject = videoStream
+            video.onloadedmetadata = () => {
+              video.play().catch(() => undefined)
+            }
+          }
+          video.onplaying = () => {
+            if (disposed || peerConnectionRef.current !== currentPc) return
+            if (firstFrameTimer !== null) {
+              clearTimeout(firstFrameTimer)
+              firstFrameTimer = null
+            }
+            videoReadyRef.current = true
+            setStatus('connected')
+          }
+          video.play().catch(() => undefined)
+        }
+      }
+
+      currentPc.onconnectionstatechange = () => {
+        if (disposed || peerConnectionRef.current !== currentPc) return
+        if (currentPc.connectionState === 'connected') {
+          retries = 0
+          setStatus(videoReadyRef.current ? 'connected' : 'connecting')
+        } else if (
+          currentPc.connectionState === 'failed' ||
+          currentPc.connectionState === 'closed'
+        ) {
+          if (peerConnectionRef.current === currentPc) {
+            scheduleReconnect(socket, currentPc)
+          }
+        }
+      }
+
+      currentPc.onicecandidate = (event) => {
+        if (
+          peerConnectionRef.current === currentPc &&
+          event.candidate &&
+          socket.readyState === WebSocket.OPEN
+        ) {
+          socket.send(JSON.stringify({
+            type: 'candidate',
+            candidate: event.candidate.toJSON()
+          }))
+        }
+      }
+
+      // Wait for gateway's signaling_ready before offering, so the agent
+      // socket is already open (offer would be dropped otherwise)
+      let offered = false
+      const sendOffer = async () => {
+        if (offered) return
+        offered = true
+        try {
+          const offer = await currentPc.createOffer()
+          await currentPc.setLocalDescription(offer)
+          socket.send(JSON.stringify({
+            type: 'offer',
+            sdp: offer.sdp
+          }))
+        } catch (err) {
+          console.warn('[WebRTC] Signaling offer creation failed:', err)
+        }
+      }
+
+      // Buffer remote candidates that arrive before the answer is applied
+      // (addIceCandidate throws "remote description was null" otherwise)
+      const pendingCandidates: RTCIceCandidateInit[] = []
+
+      socket.onmessage = async (event) => {
+        if (disposed || peerConnectionRef.current !== currentPc) return
+        if (typeof event.data !== 'string') return
         try {
           const msg = JSON.parse(event.data)
-          if (msg.type === 'answer' && pc.signalingState !== 'closed') {
-            await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }))
-          } else if (msg.type === 'candidate' && pc.signalingState !== 'closed') {
-            await pc.addIceCandidate(new RTCIceCandidate(msg.candidate))
+          if (msg.type === 'signaling_ready') {
+            sendOffer()
+          } else if (msg.type === 'answer' && currentPc.signalingState !== 'closed') {
+            await currentPc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }))
+            while (pendingCandidates.length > 0) {
+              const c = pendingCandidates.shift()!
+              await currentPc.addIceCandidate(c).catch(() => undefined)
+            }
+          } else if (msg.type === 'candidate' && currentPc.signalingState !== 'closed') {
+            const candidate: RTCIceCandidateInit = msg.candidate
+            if (currentPc.remoteDescription) {
+              await currentPc.addIceCandidate(candidate).catch(() => undefined)
+            } else {
+              pendingCandidates.push(candidate)
+            }
           }
-        } catch (e) {
-          // Ignore invalid JSON
+        } catch {
+          // ignore invalid signaling messages
         }
-        return
       }
 
-      // Fallback rendering for raw binary frames if WebRTC video track is establishing
-      if (event.data instanceof ArrayBuffer) {
-        const blob = new Blob([event.data], { type: 'image/jpeg' })
-        const imageBitmap = await createImageBitmap(blob)
-        const canvas = canvasRef.current
-        if (canvas) {
-          const ctx = canvas.getContext('2d')
-          ctx?.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height)
+      socket.onclose = () => {
+        if (firstFrameTimer !== null) {
+          clearTimeout(firstFrameTimer)
+          firstFrameTimer = null
         }
-        imageBitmap.close()
+        connecting = false
+        sockets.delete(socket)
+        dc.close()
+        pointerDc.close()
+        if (peerConnectionRef.current === currentPc) {
+          peerConnectionRef.current = null
+          currentPc.close()
+        }
+        if (disposed) return
+        scheduleReconnect(socket, currentPc)
+      }
+
+      socket.onerror = () => {
+        // close handler does the work
       }
     }
 
+    connect()
+
     return () => {
-      dc.close()
-      pc.close()
-      ws.close()
+      disposed = true
+      if (pointerFrameRef.current !== null) {
+        cancelAnimationFrame(pointerFrameRef.current)
+        pointerFrameRef.current = null
+      }
+      if (scrollFrameRef.current !== null) {
+        cancelAnimationFrame(scrollFrameRef.current)
+        scrollFrameRef.current = null
+      }
+      pendingPointerRef.current = null
+      pendingScrollRef.current = { deltaX: 0, deltaY: 0 }
+      if (videoElement) {
+        videoElement.onloadedmetadata = null
+        videoElement.onplaying = null
+      }
+      if (audioElement) audioElement.srcObject = null
+      if (reconnectTimerRef.current !== null) {
+        clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
+      if (wsRef.current === ws) wsRef.current = null
+      if (peerConnectionRef.current === pc) {
+        peerConnectionRef.current = null
+        pc?.close()
+      }
+      dataChannelRef.current = null
+      pointerChannelRef.current = null
+      for (const socket of sockets) closeSocket(socket)
+      sockets.clear()
     }
   }, [windowState.deployedUrl, windowState.status])
 
-  // Handle Resize
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        sendInput({
-          type: 'resize',
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        })
-      }
-    })
-
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [status])
-
-  const sendInput = (
-    event: Record<string, unknown> | { type: string; [key: string]: unknown }
-  ) => {
+  const sendInput = (event: Record<string, unknown>) => {
     const payload = JSON.stringify(event)
-    // Send over WebRTC DataChannel if open (ultra low latency UDP)
     if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(payload)
-      return
-    }
-    // Fallback to Signaling WS
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(payload)
     }
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const x = (e.clientX - rect.left) / rect.width
-    const y = (e.clientY - rect.top) / rect.height
-    sendInput({ type: 'mouse_move', x, y })
+  const sendPointer = (event: Record<string, unknown>) => {
+    const channel = pointerChannelRef.current
+    if (channel?.readyState === 'open' && channel.bufferedAmount < 32 * 1024) {
+      channel.send(JSON.stringify(event))
+    }
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const x = (e.clientX - rect.left) / rect.width
-    const y = (e.clientY - rect.top) / rect.height
-    sendInput({ type: 'mouse_button', button: e.button, pressed: true, x, y })
+  const queuePointer = (event: Record<string, unknown>) => {
+    pendingPointerRef.current = event
+    if (pointerFrameRef.current !== null) return
+    pointerFrameRef.current = requestAnimationFrame(() => {
+      pointerFrameRef.current = null
+      const pending = pendingPointerRef.current
+      pendingPointerRef.current = null
+      if (pending) sendPointer(pending)
+    })
+  }
+
+  const queueScroll = (deltaX: number, deltaY: number) => {
+    pendingScrollRef.current.deltaX += deltaX
+    pendingScrollRef.current.deltaY += deltaY
+    if (scrollFrameRef.current !== null) return
+    scrollFrameRef.current = requestAnimationFrame(() => {
+      scrollFrameRef.current = null
+      const pending = pendingScrollRef.current
+      pendingScrollRef.current = { deltaX: 0, deltaY: 0 }
+      if (pending.deltaX !== 0 || pending.deltaY !== 0) {
+        sendPointer({ type: 'scroll', ...pending })
+      }
+    })
+  }
+
+  const getRemotePoint = (clientX: number, clientY: number) => {
+    const container = containerRef.current
+    if (!container) return null
+    const rect = container.getBoundingClientRect()
+    const sourceWidth = videoRef.current?.videoWidth || 1280
+    const sourceHeight = videoRef.current?.videoHeight || 720
+    const scale = Math.min(rect.width / sourceWidth, rect.height / sourceHeight)
+    const renderedWidth = sourceWidth * scale
+    const renderedHeight = sourceHeight * scale
+    const offsetX = (rect.width - renderedWidth) / 2
+    const offsetY = (rect.height - renderedHeight) / 2
+    return {
+      x: Math.min(1, Math.max(0, (clientX - rect.left - offsetX) / renderedWidth)),
+      y: Math.min(1, Math.max(0, (clientY - rect.top - offsetY) / renderedHeight)),
+    }
+  }
+
+  const handleMouseMove = (e: React.PointerEvent) => {
+    const point = getRemotePoint(e.clientX, e.clientY)
+    if (point) queuePointer({ type: 'mouse_move', ...point })
+  }
+
+  const handleMouseDown = (e: React.PointerEvent) => {
+    enableAudio()
+    containerRef.current?.focus()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    const point = getRemotePoint(e.clientX, e.clientY)
+    if (point) sendInput({ type: 'mouse_button', button: e.button, pressed: true, ...point })
+  }
+
+  const handleMouseUp = (e: React.PointerEvent) => {
+    const point = getRemotePoint(e.clientX, e.clientY)
+    if (point) sendInput({ type: 'mouse_button', button: e.button, pressed: false, ...point })
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    e.preventDefault()
+    pressedKeysRef.current.add(e.code)
     sendInput({
       type: 'key',
       code: e.code,
@@ -194,12 +414,45 @@ export function RemoteApplicationSurface({
     })
   }
 
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleKeyUp = (e: React.KeyboardEvent) => {
+    e.preventDefault()
+    pressedKeysRef.current.delete(e.code)
     sendInput({
-      type: 'scroll',
-      deltaY: e.deltaY,
-      deltaX: e.deltaX,
+      type: 'key',
+      code: e.code,
+      key: e.key,
+      pressed: false,
+      ctrl: e.ctrlKey,
+      shift: e.shiftKey,
+      alt: e.altKey,
+      meta: e.metaKey,
     })
+  }
+
+  const releaseKeys = () => {
+    for (const code of pressedKeysRef.current) {
+      sendInput({
+        type: 'key',
+        code,
+        pressed: false,
+        ctrl: false,
+        shift: false,
+        alt: false,
+        meta: false,
+      })
+    }
+    pressedKeysRef.current.clear()
+  }
+
+  const enableAudio = () => {
+    audioUnlockedRef.current = true
+    if (audioRef.current) audioRef.current.muted = false
+    audioRef.current?.play().then(() => setAudioBlocked(false)).catch(() => undefined)
+  }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    queueScroll(e.deltaX, e.deltaY)
   }
 
   return (
@@ -207,12 +460,16 @@ export function RemoteApplicationSurface({
       ref={containerRef}
       className="relative w-full h-full flex flex-col bg-black overflow-hidden select-none focus:outline-none"
       tabIndex={0}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
+      onPointerMove={handleMouseMove}
+      onPointerDown={handleMouseDown}
+      onPointerUp={handleMouseUp}
+      onPointerCancel={handleMouseUp}
       onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+      onBlur={releaseKeys}
       onWheel={handleWheel}
     >
-      {status !== 'connected' && (
+      {status !== 'connected' && !videoReadyRef.current && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white z-20 backdrop-blur-md">
           {windowState.status === 'failed'
             ? 'Deployment failed. Please close and try again.'
@@ -222,31 +479,31 @@ export function RemoteApplicationSurface({
         </div>
       )}
 
-      {/* WebRTC Ultra-low latency status badge */}
       {status === 'connected' && (
         <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full border border-emerald-500/30 text-[11px] text-emerald-400 font-mono shadow-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>WebRTC • {latency ? `${latency}ms` : 'Ultra-Low Latency'}</span>
+          <span>WebRTC • {latency !== null ? `${latency.toFixed(0)}ms` : 'Ultra-Low Latency'}</span>
         </div>
       )}
 
-      {/* Primary WebRTC Video Element */}
+      {audioBlocked && status === 'connected' && (
+        <button
+          type="button"
+          onClick={enableAudio}
+          className="absolute top-2 right-2 z-10 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[11px] text-white"
+        >
+          Enable audio
+        </button>
+      )}
+
       <video
         ref={videoRef}
         autoPlay
         playsInline
         muted
-        className={`w-full h-full object-contain ${useWebRTC ? 'block' : 'hidden'}`}
+        className="w-full h-full object-contain"
       />
-
-      {/* Fallback Canvas Element */}
-      <canvas
-        ref={canvasRef}
-        width={1280}
-        height={720}
-        className={`w-full h-full object-contain ${useWebRTC ? 'hidden' : 'block'}`}
-      />
+      <audio ref={audioRef} autoPlay className="absolute h-px w-px opacity-0" />
     </div>
   )
 }
-

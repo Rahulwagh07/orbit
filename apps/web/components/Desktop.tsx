@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Dock } from './Dock'
 import { DesktopWindow } from './DesktopWindow'
 import { useAuth } from './AuthProvider'
@@ -17,6 +17,15 @@ export interface WindowState {
 
 export function Desktop() {
   const [windows, setWindows] = useState<WindowState[]>([])
+  const statusStreamsRef = useRef(new Map<string, EventSource>())
+
+  useEffect(() => {
+    const statusStreams = statusStreamsRef.current
+    return () => {
+      for (const eventSource of statusStreams.values()) eventSource.close()
+      statusStreams.clear()
+    }
+  }, [])
 
   useEffect(() => {
     const fetchWindows = async () => {
@@ -77,12 +86,33 @@ export function Desktop() {
       const eventSource = new EventSource(
         `/api/apps/status/${data.app_id}/stream?instance_id=${data.instance_id}`
       )
+      statusStreamsRef.current.set(newWindow.id, eventSource)
       eventSource.onmessage = event => {
-        const payload = JSON.parse(event.data)
+        let payload: { phase?: string; deployed_url?: string }
+        try {
+          payload = JSON.parse(event.data)
+        } catch {
+          return
+        }
         
         setWindows(prev =>
           prev.map(w => {
             if (w.id === newWindow.id) {
+              const phaseOrder = [
+                'INITIALIZING',
+                'CREATING_RESOURCES',
+                'CONTAINER_STARTING',
+                'WAITING_READY',
+                'CONFIGURING_NETWORK',
+                'READY',
+                'FAILED',
+              ]
+              if (
+                payload.phase &&
+                phaseOrder.indexOf(payload.phase) < phaseOrder.indexOf(w.phase || '')
+              ) {
+                return w
+              }
               if (payload.phase === 'READY') {
                 return {
                   ...w,
@@ -102,6 +132,7 @@ export function Desktop() {
 
         if (payload.phase === 'READY' || payload.phase === 'FAILED') {
           eventSource.close()
+          statusStreamsRef.current.delete(newWindow.id)
         }
       }
     } catch (e) {
@@ -110,6 +141,8 @@ export function Desktop() {
   }
 
   const handleCloseWindow = async (id: string) => {
+    statusStreamsRef.current.get(id)?.close()
+    statusStreamsRef.current.delete(id)
     setWindows(prev => prev.filter(w => w.id !== id))
     try {
       await fetch(`/api/windows/${id}`, { method: 'DELETE' })

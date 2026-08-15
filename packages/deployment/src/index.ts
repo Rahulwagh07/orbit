@@ -32,6 +32,8 @@ export class DeploymentStateMachine {
       instance_id: this.instanceId,
       ...options
     };
-    this.onStateChange(event);
+    // Return the callback result so callers can await async side effects
+    // (e.g. persisting + publishing READY) before moving on
+    return this.onStateChange(event) as unknown as Promise<void> | void;
   }
 }

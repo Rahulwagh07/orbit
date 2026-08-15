@@ -1,8 +1,12 @@
-import { redis } from "@repo/redis";
+import { redis, createRedisClient } from "@repo/redis";
 import { DeploymentJobSchema } from "@repo/protocol";
 import { DeploymentService } from "./services/deployment";
 
 const deploymentService = new DeploymentService();
+
+// Dedicated connection for the blocking brpop, so the shared client (used
+// for publishing deployment events) never gets stuck behind a blocked command
+const jobsRedis = createRedisClient();
 
 async function processJob(jobStr: string) {
   let jobData: unknown;
@@ -32,7 +36,7 @@ async function main() {
   console.log("Worker started, waiting for jobs...");
   while (true) {
     try {
-      const result = await redis.brpop("deployment_jobs", 0);
+      const result = await jobsRedis.brpop("deployment_jobs", 0);
       if (result) {
         const [, jobStr] = result;
         await processJob(jobStr);

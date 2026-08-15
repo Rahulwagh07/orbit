@@ -14,12 +14,13 @@ interface DesktopWindowProps {
 
 export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
   const [position] = useState({ x: 100, y: 100 });
-  const [size] = useState({ width: 1000, height: 600 });
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const dragControls = useDragControls();
 
   return (
     <motion.div
-      drag
+      drag={!isMaximized && !isMinimized}
       dragMomentum={false}
       dragListener={false}
       dragControls={dragControls}
@@ -28,26 +29,29 @@ export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
       exit={{ opacity: 0, scale: 0.9 }}
       style={{
         position: "absolute",
-        left: position.x,
-        top: position.y,
-        width: size.width,
-        height: size.height,
+        left: isMaximized ? 0 : position.x,
+        top: isMaximized ? 0 : position.y,
+        width: isMaximized ? "100vw" : 1000,
+        height: isMinimized ? 40 : isMaximized ? "100vh" : 600,
+        zIndex: isMaximized ? 40 : 10,
       }}
       className="bg-black/90 rounded-xl overflow-hidden shadow-2xl border border-white/20 flex flex-col"
     >
       {/* Titlebar */}
       <div 
         className="titlebar h-10 bg-white/10 flex items-center px-4 cursor-grab active:cursor-grabbing border-b border-white/10 select-none"
-        onPointerDown={(e) => dragControls.start(e)}
+        onPointerDown={(e) => {
+          if (!(e.target as HTMLElement).closest("button")) dragControls.start(e);
+        }}
       >
         <div className="flex gap-2 w-20">
-          <button onClick={onClose} className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center group">
+          <button type="button" title="Close" onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center group">
             <X size={10} className="opacity-0 group-hover:opacity-100 text-black" />
           </button>
-          <button className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center group">
+          <button type="button" title={isMinimized ? "Restore" : "Minimize"} onPointerDown={(e) => e.stopPropagation()} onClick={() => setIsMinimized((value) => !value)} className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center group">
             <Minus size={10} className="opacity-0 group-hover:opacity-100 text-black" />
           </button>
-          <button className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center group">
+          <button type="button" title={isMaximized ? "Restore" : "Maximize"} onPointerDown={(e) => e.stopPropagation()} onClick={() => { setIsMaximized((value) => !value); setIsMinimized(false); }} className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center group">
             <Maximize2 size={10} className="opacity-0 group-hover:opacity-100 text-black" />
           </button>
         </div>
@@ -58,13 +62,15 @@ export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 bg-[#0a0a0a] relative flex items-center justify-center overflow-hidden">
-        {windowState.status === "deploying" ? (
-          <DeploymentProgress phase={windowState.phase || "INITIALIZING"} />
-        ) : (
-          <RemoteApplicationSurface windowState={windowState} />
-        )}
-      </div>
+      {!isMinimized && (
+        <div className="flex-1 bg-[#0a0a0a] relative flex items-center justify-center overflow-hidden">
+          {windowState.status === "deploying" ? (
+            <DeploymentProgress phase={windowState.phase || "INITIALIZING"} />
+          ) : (
+            <RemoteApplicationSurface windowState={windowState} />
+          )}
+        </div>
+      )}
     </motion.div>
   );
 }
