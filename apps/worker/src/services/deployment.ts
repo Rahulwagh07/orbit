@@ -5,6 +5,17 @@ import { DockerContainerRuntime } from "@repo/container-runtime";
 import { getAvailablePort, getAvailableUdpRange } from "../utils/port";
 import { pollHealthCheck } from "./health-check";
 
+const APP_CONFIG: Record<string, { image: string; env: Record<string, string> }> = {
+  chromium: {
+    image: "infinity-chromium",
+    env: { APP_COMMAND: "chromium", APP_WINDOW_CLASS: "chromium" },
+  },
+  vscode: {
+    image: "infinity-vscode",
+    env: { APP_COMMAND: "code", APP_WINDOW_CLASS: "Code" },
+  },
+};
+
 export class DeploymentService {
   private runtime: DockerContainerRuntime;
 
@@ -22,7 +33,7 @@ export class DeploymentService {
     });
   }
 
-  async deployInstance(instanceId: string) {
+  async deployInstance(instanceId: string, application: string = "chromium") {
     console.log(`Deploying instance ${instanceId}`);
 
     const stateMachine = new DeploymentStateMachine(instanceId, async (event: DeploymentEvent) => {
@@ -58,11 +69,14 @@ export class DeploymentService {
         data: { port }
       });
       
+      const appConfig = APP_CONFIG[application] || APP_CONFIG.chromium!;
+
       await this.runtime.start({
         instanceId,
-        image: "infinity-chromium",
+        image: appConfig.image,
         port,
-        udpPorts
+        udpPorts,
+        env: appConfig.env,
       });
 
       await stateMachine.transition("WAITING_READY");

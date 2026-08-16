@@ -142,6 +142,7 @@ model Deployment {
 
 enum ApplicationType {
   CHROMIUM
+  VSCODE
 }
 
 enum InstanceStatus {

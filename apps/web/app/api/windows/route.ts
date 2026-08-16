@@ -21,11 +21,18 @@ export async function POST(req: Request) {
       })
     }
 
+    // Map application string to DB type and display name
+    const appTypeMap: Record<string, { type: 'CHROMIUM' | 'VSCODE'; name: string }> = {
+      chromium: { type: 'CHROMIUM', name: 'Chromium' },
+      vscode: { type: 'VSCODE', name: 'Visual Studio Code' },
+    }
+    const appInfo = appTypeMap[parsed.data.application] || appTypeMap.chromium!
+
     // Create Application
     const application = await prisma.application.create({
       data: {
-        type: 'CHROMIUM',
-        name: 'Chromium',
+        type: appInfo.type,
+        name: appInfo.name,
       },
     })
 
@@ -54,7 +61,7 @@ export async function POST(req: Request) {
         workspaceId: workspace.id,
         applicationId: application.id,
         instanceId: instance.id,
-        title: 'Chromium',
+        title: appInfo.name,
       },
     })
 
@@ -65,7 +72,7 @@ export async function POST(req: Request) {
       JSON.stringify({
         type: 'deploy',
         instanceId: instance.shortId,
-        application: 'chromium',
+        application: parsed.data.application,
         workspaceId: workspace.id,
       })
     )
@@ -97,7 +104,7 @@ export async function GET() {
 
   // Map to frontend expected shape
   const result = await Promise.all(
-    windows.map(async (w: { id: string; applicationId: string; instanceId: string | null }) => {
+    windows.map(async (w: { id: string; applicationId: string; instanceId: string | null; application: { type: string; name: string } }) => {
       // For MVP, look up instance if exists
       let status = 'ready'
       let shortId = ''
@@ -125,6 +132,8 @@ export async function GET() {
         instance_id: shortId || w.instanceId,
         status,
         deployed_url: deployedUrl,
+        application_type: w.application.type.toLowerCase(),
+        title: w.application.name,
       }
     })
   )

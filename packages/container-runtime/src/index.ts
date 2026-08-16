@@ -9,6 +9,7 @@ export interface ContainerConfig {
   port: number;
   /** UDP port range published for WebRTC/ICE media, [min, max] */
   udpPorts?: [number, number];
+  env?: Record<string, string>;
 }
 
 export interface ContainerRuntime {
@@ -19,7 +20,7 @@ export interface ContainerRuntime {
 
 export class DockerContainerRuntime implements ContainerRuntime {
   async start(config: ContainerConfig): Promise<void> {
-    const containerName = `chromium-runtime-${config.instanceId}`;
+    const containerName = `app-runtime-${config.instanceId}`;
 
     // Idempotency: cleanup existing container
     try {
@@ -49,6 +50,9 @@ export class DockerContainerRuntime implements ContainerRuntime {
         : []),
       "-e", `RUNTIME_ENABLE_GPU=${process.env.RUNTIME_ENABLE_GPU === "1" ? "1" : "0"}`,
       "-e", `VIDEO_ENCODER=${process.env.VIDEO_ENCODER || "libx264"}`,
+      ...(config.env
+        ? Object.entries(config.env).flatMap(([k, v]) => ["-e", `${k}=${v}`])
+        : []),
       "--shm-size=1g",
       config.image
     ];
@@ -67,7 +71,7 @@ export class DockerContainerRuntime implements ContainerRuntime {
   }
 
   async stop(instanceId: string): Promise<void> {
-    const containerName = `chromium-runtime-${instanceId}`;
+    const containerName = `app-runtime-${instanceId}`;
     try {
       await execFileAsync("docker", ["rm", "-f", containerName]);
     } catch (e: any) {
@@ -79,7 +83,7 @@ export class DockerContainerRuntime implements ContainerRuntime {
   }
 
   async status(instanceId: string): Promise<string> {
-    const containerName = `chromium-runtime-${instanceId}`;
+    const containerName = `app-runtime-${instanceId}`;
     try {
       const { stdout } = await execFileAsync("docker", ["inspect", "--format='{{.State.Status}}'", containerName]);
       return stdout.trim().replace(/['"]/g, '');

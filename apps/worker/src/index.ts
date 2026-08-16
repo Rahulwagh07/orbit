@@ -28,7 +28,7 @@ async function processJob(jobStr: string) {
   if (job.type === "stop") {
     await deploymentService.stopInstance(job.instanceId);
   } else if (job.type === "deploy") {
-    await deploymentService.deployInstance(job.instanceId);
+    await deploymentService.deployInstance(job.instanceId, job.application ?? "chromium");
   }
 }
 

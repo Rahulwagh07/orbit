@@ -5,6 +5,11 @@ import { Dock } from './Dock'
 import { DesktopWindow } from './DesktopWindow'
 import { useAuth } from './AuthProvider'
 
+const APP_TITLES: Record<string, string> = {
+  chromium: 'Chromium',
+  vscode: 'Visual Studio Code',
+}
+
 export interface WindowState {
   id: string
   appId: string
@@ -41,13 +46,15 @@ export function Desktop() {
                 instance_id: string
                 deployed_url: string
                 status: string
+                application_type?: string
+                title?: string
               }) => ({
                 id: w.window_id,
                 appId: w.app_id,
                 instanceId: w.instance_id,
                 deployedUrl: w.deployed_url,
                 status: w.status,
-                title: 'Chromium',
+                title: w.title || APP_TITLES[w.application_type || ''] || 'Application',
                 phase: 'INITIALIZING',
               })
             )
@@ -60,12 +67,12 @@ export function Desktop() {
     fetchWindows()
   }, [])
 
-  const handleLaunchChromium = async () => {
+  const handleLaunchApp = async (appType: 'chromium' | 'vscode') => {
     try {
       const res = await fetch('/api/windows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ application: 'chromium' }),
+        body: JSON.stringify({ application: appType }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -76,7 +83,7 @@ export function Desktop() {
         instanceId: data.instance_id,
         deployedUrl: data.deployed_url,
         status: data.status,
-        title: 'Chromium',
+        title: APP_TITLES[appType] || appType,
         phase: 'INITIALIZING',
       }
 
@@ -118,7 +125,7 @@ export function Desktop() {
                   ...w,
                   status: 'ready',
                   phase: payload.phase,
-                  deployedUrl: payload.deployed_url || 'ws://127.0.0.1:4001',
+                  deployedUrl: payload.deployed_url || w.deployedUrl,
                 }
               } else if (payload.phase === 'FAILED') {
                 return { ...w, status: 'failed', phase: payload.phase }
@@ -176,7 +183,7 @@ export function Desktop() {
           onClose={() => handleCloseWindow(win.id)}
         />
       ))}
-      <Dock onLaunchChromium={handleLaunchChromium} />
+      <Dock onLaunchApp={handleLaunchApp} />
     </div>
   )
 }

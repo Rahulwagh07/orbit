@@ -24,4 +24,7 @@ USER infinity
 
 EXPOSE 8080
 
+ENV APP_COMMAND=chromium
+ENV APP_WINDOW_CLASS=chromium
+
 CMD ["node", "dist/index.js"]

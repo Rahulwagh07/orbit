@@ -34,6 +34,9 @@ const START_URL = process.env.RUNTIME_START_URL || "chrome://newtab";
 const ENABLE_GPU = process.env.RUNTIME_ENABLE_GPU === "1";
 const VIDEO_ENCODER = process.env.VIDEO_ENCODER || (ENABLE_GPU ? "h264_nvenc" : "libx264");
 const ADVERTISE_SERVER_REFLEXIVE_CANDIDATE = process.env.ICE_ADVERTISE_SRFLX === "1";
+const APP_COMMAND = process.env.APP_COMMAND || "chromium";
+const APP_WINDOW_CLASS = process.env.APP_WINDOW_CLASS || "chromium";
+const APP_EXTRA_ARGS = process.env.APP_EXTRA_ARGS ? process.env.APP_EXTRA_ARGS.split(",") : [];
 const execFileAsync = promisify(execFile);
 const pulseEnv = {
   ...process.env,
@@ -81,29 +84,30 @@ function startDisplay(): void {
   );
 }
 
-async function waitForChromiumWindow(timeoutMs = 15000): Promise<void> {
+async function waitForAppWindow(timeoutMs = 15000): Promise<void> {
   const started = Date.now();
   const env = { ...pulseEnv, DISPLAY: ":99" };
   while (Date.now() - started < timeoutMs) {
     try {
-      await execFileAsync("xdotool", ["search", "--onlyvisible", "--class", "chromium"], { env });
+      await execFileAsync("xdotool", ["search", "--onlyvisible", "--class", APP_WINDOW_CLASS], { env });
       return;
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
-  throw new Error("Chromium window did not become visible");
+  throw new Error(`${APP_COMMAND} window did not become visible`);
 }
 
-async function startDesktopApps(): Promise<void> {
+async function startDesktopApp(): Promise<void> {
   const env = { ...pulseEnv, DISPLAY: ":99", PULSE_SINK: "auto_null" };
   const gpuArgs = ENABLE_GPU
     ? ["--ignore-gpu-blocklist", "--enable-gpu-rasterization", "--use-gl=egl"]
-    : ["--disable-gpu", "--disable-software-rasterizer"];
+    : ["--disable-gpu"];
   spawn("fluxbox", [], { env, stdio: "ignore" });
-  const chromium = spawn(
-    "chromium",
-    [
+
+  let appArgs: string[];
+  if (APP_COMMAND === "chromium") {
+    appArgs = [
       "--disable-dev-shm-usage",
       ...gpuArgs,
       "--window-size=1280,720",
@@ -113,12 +117,23 @@ async function startDesktopApps(): Promise<void> {
       "--no-default-browser-check",
       "--autoplay-policy=no-user-gesture-required",
       START_URL,
-    ],
-    { env, stdio: "ignore" },
-  );
-  chromium.on("error", (error) => log("Chromium failed to start:", error.message));
-  chromium.on("exit", (code, signal) => log("Chromium exited:", code, signal));
-  await waitForChromiumWindow();
+    ];
+  } else if (APP_COMMAND === "code") {
+    appArgs = [
+      "--no-sandbox",
+      ...gpuArgs,
+      "--force-device-scale-factor=1",
+      "--max-old-space-size=4096",
+      ...APP_EXTRA_ARGS,
+    ];
+  } else {
+    appArgs = [...APP_EXTRA_ARGS];
+  }
+
+  const app = spawn(APP_COMMAND, appArgs, { env, stdio: "ignore" });
+  app.on("error", (error) => log(`${APP_COMMAND} failed to start:`, error.message));
+  app.on("exit", (code, signal) => log(`${APP_COMMAND} exited:`, code, signal));
+  await waitForAppWindow();
 }
 
 function getVideoEncoderArgs(): string[] {
@@ -717,7 +732,7 @@ async function main(): Promise<void> {
     await waitForXServer();
   }
   await startPulseAudio();
-  await startDesktopApps();
+  await startDesktopApp();
   desktopReady = true;
   log("desktop ready");
 }

@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion'
 
 interface DockProps {
-  onLaunchChromium: () => void
+  onLaunchApp: (app: 'chromium' | 'vscode') => void
 }
 
-export function Dock({ onLaunchChromium }: DockProps) {
+export function Dock({ onLaunchApp }: DockProps) {
   return (
     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
       <div className="flex items-center gap-4 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl">
@@ -14,7 +14,7 @@ export function Dock({ onLaunchChromium }: DockProps) {
           <motion.button
             whileHover={{ scale: 1.1, y: -10 }}
             whileTap={{ scale: 0.9 }}
-            onClick={onLaunchChromium}
+            onClick={() => onLaunchApp('chromium')}
             className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg"
           >
             <ChromeSVG />
@@ -24,10 +24,26 @@ export function Dock({ onLaunchChromium }: DockProps) {
             Chromium
           </div>
         </div>
+
+        <div className="relative group flex flex-col items-center">
+          <motion.button
+            whileHover={{ scale: 1.1, y: -10 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onLaunchApp('vscode')}
+            className="w-14 h-14 bg-[#1e1e1e] rounded-xl flex items-center justify-center shadow-lg"
+          >
+            <VSCodeSVG />
+          </motion.button>
+
+          <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+            VS Code
+          </div>
+        </div>
       </div>
     </div>
   )
 }
+
 function ChromeSVG() {
   return (
     <>
@@ -90,5 +106,48 @@ function ChromeSVG() {
         </g>
       </svg>
     </>
+  )
+}
+
+function VSCodeSVG() {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-9 h-9"
+    >
+      <mask id="mask" x="0" y="0" width="100" height="100">
+        <rect x="0" y="0" width="100" height="100" fill="white" />
+      </mask>
+      <g mask="url(#mask)">
+        <path
+          d="M74.7 95.9L29.3 79.4 1.1 53.3c-1.5-1.4-1.5-3.7 0-5.1L29.3 22l45.4-16.5c2.8-1 5.8.5 6.8 3.3.2.5.3 1 .3 1.5V91.7c0 3-.4 5.4-3.4 5.4-.6 0-2.4-.4-3.7-1.2z"
+          fill="#0065A9"
+        />
+        <path
+          d="M74.7 95.9L29.3 79.4 1.1 53.3c-1.5-1.4-1.5-3.7 0-5.1L29.3 22l45.4-16.5c2.8-1 5.8.5 6.8 3.3.2.5.3 1 .3 1.5V91.7c0 3-.4 5.4-3.4 5.4-.6 0-2.4-.4-3.7-1.2z"
+          fill="#0065A9"
+        />
+        <path
+          d="M74.7 95.9c-1.3.8-3.1 1.2-3.7 1.2-3 0-3.4-2.4-3.4-5.4V10.3c0-3 .4-5.4 3.4-5.4.6 0 2.4.4 3.7 1.2L81.5 10c1.7.6 2.8 2.2 2.8 4v73.6c0 1.8-1.2 3.4-2.8 4l-6.8 4.3z"
+          fill="#007ACC"
+        />
+        <path
+          d="M74.7 95.9L29.3 79.4 1.1 53.3c-1.5-1.4-1.5-3.7 0-5.1L29.3 22l45.4-16.5c2.8-1 5.8.5 6.8 3.3.2.5.3 1 .3 1.5V91.7c0 3-.4 5.4-3.4 5.4-.6 0-2.4-.4-3.7-1.2z"
+          fill="url(#gradient)"
+          opacity="0.25"
+        />
+        <defs>
+          <linearGradient id="gradient" x1="50" y1="0" x2="50" y2="100" gradientUnits="userSpaceOnUse">
+            <stop stopColor="white" />
+            <stop offset="1" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M67.6 72.8L42.4 50.1l25.2-22.7V18L25.2 47.2c-1.3 1.2-1.3 3.2 0 4.4L67.6 81V72.8z"
+          fill="white"
+        />
+      </g>
+    </svg>
   )
 }
