@@ -106,6 +106,18 @@ function setupFluxboxConfig(): void {
     if (!existsSync(fluxboxDir)) {
       mkdirSync(fluxboxDir, { recursive: true });
     }
+    
+    // Configure default init settings to globally disable window decorations
+    const initContent = `
+session.configVersion: 13
+session.screen0.defaultDeco: NONE
+session.screen0.titlebar: false
+session.screen0.toolbar.tools: workspacename, iconbar, systemtray
+session.appsFile: ~/.fluxbox/apps
+`;
+    writeFileSync(`${fluxboxDir}/init`, initContent.trim());
+
+    // Configure window-specific positioning overrides
     const appsContent = `
 [app] (.*)
   [Deco] {NONE}
@@ -114,9 +126,9 @@ function setupFluxboxConfig(): void {
 [end]
 `;
     writeFileSync(`${fluxboxDir}/apps`, appsContent.trim());
-    log("fluxbox apps configuration written successfully");
+    log("fluxbox init and apps configurations written successfully");
   } catch (error) {
-    log("failed to write fluxbox apps configuration:", error);
+    log("failed to write fluxbox configuration:", error);
   }
 }
 
