@@ -107,22 +107,7 @@ function setupFluxboxConfig(): void {
       mkdirSync(fluxboxDir, { recursive: true });
     }
     const appsContent = `
-[app] (chromium)
-  [Deco] {NONE}
-  [Position] {0 0}
-  [Dimensions] {1280 720}
-[end]
-[app] (chromium-browser)
-  [Deco] {NONE}
-  [Position] {0 0}
-  [Dimensions] {1280 720}
-[end]
-[app] (code)
-  [Deco] {NONE}
-  [Position] {0 0}
-  [Dimensions] {1280 720}
-[end]
-[app] (Code)
+[app] (.*)
   [Deco] {NONE}
   [Position] {0 0}
   [Dimensions] {1280 720}
@@ -150,7 +135,6 @@ async function startDesktopApp(): Promise<void> {
       ...gpuArgs,
       "--window-size=1280,720",
       "--window-position=0,0",
-      "--start-maximized",
       "--no-first-run",
       "--no-default-browser-check",
       "--autoplay-policy=no-user-gesture-required",
