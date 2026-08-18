@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import { WindowState } from "./Desktop";
 import { RemoteApplicationSurface } from "./RemoteApplicationSurface";
 import { Maximize2, Minus, X, Check, Circle, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDragControls } from "framer-motion";
 
 interface DesktopWindowProps {
@@ -26,6 +26,15 @@ export function DesktopWindow({
 }: DesktopWindowProps) {
   const [position] = useState({ x: 100, y: 100 });
   const dragControls = useDragControls();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  useEffect(() => {
+    if (isMaximized || isMinimized) {
+      x.set(0);
+      y.set(0);
+    }
+  }, [isMaximized, isMinimized, x, y]);
 
   return (
     <motion.div
@@ -52,6 +61,8 @@ export function DesktopWindow({
         height: isMaximized ? "100%" : "min(90%, 650px)",
         zIndex: isMaximized ? 40 : 10,
         pointerEvents: isMinimized ? "none" : "auto",
+        x,
+        y,
       }}
       className="bg-black/90 rounded-xl overflow-hidden shadow-2xl border border-white/20 flex flex-col"
     >
