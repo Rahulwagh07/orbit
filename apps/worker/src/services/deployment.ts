@@ -1,5 +1,6 @@
 import { redis } from "@repo/redis";
 import { prisma } from "@repo/db";
+import crypto from "crypto";
 import { DeploymentStateMachine, DeploymentEvent } from "@repo/deployment";
 import { DockerContainerRuntime } from "@repo/container-runtime";
 import { getAvailablePort, getAvailableUdpRange } from "../utils/port";
@@ -62,6 +63,7 @@ export class DeploymentService {
       
       const port = await getAvailablePort();
       const udpPorts = await getAvailableUdpRange();
+      const sessionToken = crypto.randomUUID();
       
       // Save port in DB for gateway validation
       await prisma.applicationInstance.update({
@@ -76,7 +78,10 @@ export class DeploymentService {
         image: appConfig.image,
         port,
         udpPorts,
-        env: appConfig.env,
+        env: {
+          ...appConfig.env,
+          SESSION_TOKEN: sessionToken,
+        },
       });
 
       await stateMachine.transition("WAITING_READY");
@@ -91,7 +96,7 @@ export class DeploymentService {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       await stateMachine.transition("READY", {
-        deployed_url: `ws://localhost:4001/session/${instanceId}?port=${port}`
+        deployed_url: `ws://localhost:4001/session/${instanceId}?port=${port}&token=${sessionToken}`
       });
 
     } catch (error: unknown) {

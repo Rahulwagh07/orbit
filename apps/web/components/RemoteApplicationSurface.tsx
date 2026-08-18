@@ -102,14 +102,14 @@ export function RemoteApplicationSurface({
     }
 
     const scheduleReconnect = (
-      sessionSocket: WebSocket,
+      sessionSocket: WebSocket | null,
       sessionPc: RTCPeerConnection,
       reason: string,
     ) => {
       if (disposed || reconnectTimerRef.current !== null) return
-      // Both references must belong to this session. Accepting a match on
-      // either side can tear down a newer socket or peer connection.
-      if (ws !== sessionSocket || pc !== sessionPc) return
+      // We only re-validate the peer connection because the signaling WebSocket
+      // can be transiently disconnected without interrupting the active direct session.
+      if (pc !== sessionPc) return
 
       clearSessionTimers()
       ws = null
@@ -117,7 +117,9 @@ export function RemoteApplicationSurface({
       if (peerConnectionRef.current === sessionPc) {
         peerConnectionRef.current = null
       }
-      closeSocket(sessionSocket)
+      if (sessionSocket) {
+        closeSocket(sessionSocket)
+      }
       sessionPc.close()
       connecting = false
 
@@ -150,12 +152,18 @@ export function RemoteApplicationSurface({
         connecting = false
       }
 
-      const currentPc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-        ],
-      })
+      const iceServers: RTCIceServer[] = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ]
+      if (process.env.NEXT_PUBLIC_TURN_URL) {
+        iceServers.push({
+          urls: process.env.NEXT_PUBLIC_TURN_URL,
+          username: process.env.NEXT_PUBLIC_TURN_USERNAME || '',
+          credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL || '',
+        })
+      }
+      const currentPc = new RTCPeerConnection({ iceServers })
       pc = currentPc
       peerConnectionRef.current = currentPc
       signalingTimer = setTimeout(() => {
@@ -374,11 +382,19 @@ export function RemoteApplicationSurface({
       socket.onclose = () => {
         connecting = false
         sockets.delete(socket)
+        if (disposed) return
+
+        // If the PeerConnection is connected, keep it active and do not close data channels
+        if (currentPc.connectionState === 'connected') {
+          console.log('[WebRTC] Signaling socket closed, but PeerConnection remains connected. Keeping direct session alive.')
+          if (ws === socket) ws = null
+          return
+        }
+
         dc.close()
         pointerDc.close()
-        if (disposed) return
         if (ws === socket && pc === currentPc) {
-          scheduleReconnect(socket, currentPc, 'signaling socket closed')
+          scheduleReconnect(socket, currentPc, 'signaling socket closed before peer connection established')
         } else {
           currentPc.close()
         }

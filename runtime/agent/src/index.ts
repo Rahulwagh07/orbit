@@ -559,9 +559,18 @@ async function handleOffer(ws: WebSocket, sdp: string): Promise<void> {
   activeWs = ws;
   log("received offer");
 
+  const iceServers = [];
+  if (process.env.ICE_TURN_URL) {
+    iceServers.push({
+      urls: [process.env.ICE_TURN_URL],
+      username: process.env.ICE_TURN_USERNAME || "",
+      credential: process.env.ICE_TURN_CREDENTIAL || "",
+    });
+  }
+
   const pc = new RTCPeerConnection({
     codecs: { video: [useH264()], audio: [useOPUS()] },
-    iceServers: [],
+    iceServers,
     iceUseTcp: false,
     iceUseIpv6: false,
     ...(icePortRange ? { icePortRange } : {}),
@@ -639,6 +648,9 @@ async function handleOffer(ws: WebSocket, sdp: string): Promise<void> {
       }
     } else if (state === "failed" || state === "closed") {
       stopSessionMedia();
+      if (activePc === pc) {
+        closeSession();
+      }
     }
   });
 
@@ -683,8 +695,23 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocketServer({ server });
 
-wss.on("connection", (ws) => {
-  log("client connected");
+wss.on("connection", (ws, req) => {
+  const url = new URL(req.url || "", "http://localhost");
+  const token = url.searchParams.get("token");
+  const expectedToken = process.env.SESSION_TOKEN;
+  if (!expectedToken || token !== expectedToken) {
+    log("unauthorized connection request rejected");
+    ws.close(1008, "Unauthorized");
+    return;
+  }
+
+  log("client connected and authorized");
+
+  if (activeWs && activeWs.readyState === WebSocket.OPEN) {
+    log("closing existing activeWs connection to favor the new one");
+    activeWs.close();
+  }
+  activeWs = ws;
 
   ws.on("message", (data) => {
     let message: unknown;
@@ -723,8 +750,9 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     log("client disconnected");
-    // A stale signaling socket must not tear down a newer WebRTC session.
-    if (activeWs === ws) closeSession();
+    if (activeWs === ws) {
+      activeWs = null;
+    }
   });
 
   ws.on("error", () => undefined);
