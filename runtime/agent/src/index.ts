@@ -499,19 +499,7 @@ const mdnsCache = new Map<string, string>();
 // Chrome obfuscates its host candidates as mDNS names (xxx.local).
 // Resolve them via the OS mDNS client so ICE can reach the browser.
 function resolveMdns(name: string): Promise<string | null> {
-  const cached = mdnsCache.get(name);
-  if (cached) return Promise.resolve(cached);
-  return new Promise((resolve) => {
-    dns.lookup(name, { family: 4 }, (error, address) => {
-      if (error || !address) {
-        resolve(null);
-        return;
-      }
-      mdnsCache.set(name, address);
-      setTimeout(() => mdnsCache.delete(name), 60_000);
-      resolve(address);
-    });
-  });
+  return Promise.resolve(null);
 }
 
 interface RemoteCandidateMessage {
@@ -543,7 +531,7 @@ async function handleRemoteCandidate(candidate: RemoteCandidateMessage): Promise
   await activePc.addIceCandidate(final as never).catch(() => undefined);
 }
 
-function closeSession(): void {
+function closeSession(keepSocketOpen = false): void {
   const previousWs = activeWs;
   activeWs = null;
   remoteDescriptionReady = false;
@@ -558,7 +546,7 @@ function closeSession(): void {
   activePc?.close();
   activePc = null;
   pendingCandidates.length = 0;
-  if (previousWs?.readyState === WebSocket.OPEN) previousWs.close();
+  if (!keepSocketOpen && previousWs?.readyState === WebSocket.OPEN) previousWs.close();
 }
 
 function dispatchInput(message: unknown): void {
@@ -588,7 +576,7 @@ function setupDataChannel(dc: RTCDataChannel): void {
 }
 
 async function handleOffer(ws: WebSocket, sdp: string): Promise<void> {
-  closeSession();
+  closeSession(true);
   activeWs = ws;
   log("received offer");
 
