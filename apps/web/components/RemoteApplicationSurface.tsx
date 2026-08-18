@@ -379,10 +379,12 @@ export function RemoteApplicationSurface({
         }
       }
 
-      socket.onclose = () => {
+      socket.onclose = (event) => {
         connecting = false
         sockets.delete(socket)
         if (disposed) return
+
+        console.log(`[WebRTC] Signaling socket onclose: code=${event.code}, reason=${event.reason || 'none'}`)
 
         // If the PeerConnection is connected, keep it active and do not close data channels
         if (currentPc.connectionState === 'connected') {

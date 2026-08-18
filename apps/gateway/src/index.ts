@@ -235,9 +235,9 @@ wss.on("connection", async (ws, req) => {
     }
   });
 
-  ws.on("close", () => {
+  ws.on("close", (code, reason) => {
     browserClosed = true;
-    console.log(`[WebRTC Signaling] Browser disconnected for port ${portNum}`);
+    console.log(`[WebRTC Signaling] Browser disconnected for port ${portNum}: code=${code}, reason=${reason.toString()}`);
     agentWs?.close();
   });
 
