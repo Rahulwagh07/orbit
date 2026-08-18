@@ -196,8 +196,8 @@ wss.on("connection", async (ws, req) => {
         agentWs = await openAgentSocket();
         console.log(`[WebRTC Signaling] Connected to runtime agent for port ${portNum}`);
         agentWs.on("message", forwardAgentMessage);
-        agentWs.on("close", () => {
-          console.log(`[WebRTC Signaling] Agent connection closed for port ${portNum}`);
+        agentWs.on("close", (code, reason) => {
+          console.log(`[WebRTC Signaling] Agent connection closed for port ${portNum}: code=${code}, reason=${reason.toString()}`);
           if (ws.readyState === WebSocket.OPEN) ws.close(1011, "Agent disconnected");
         });
         agentWs.on("error", (error) => {
