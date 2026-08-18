@@ -30,7 +30,7 @@ export function Dock({ onLaunchApp }: DockProps) {
             whileHover={{ scale: 1.1, y: -10 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onLaunchApp('vscode')}
-            className="w-14 h-14 bg-[#1e1e1e] rounded-xl flex items-center justify-center shadow-lg"
+            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg"
           >
             <VSCodeSVG />
           </motion.button>

@@ -32,6 +32,7 @@ RUN rm -rf src packages && chown -R infinity:infinity /home/infinity
 USER infinity
 
 ENV APP_COMMAND=code
+ENV APP_EXECUTABLE=/usr/share/code/code
 ENV APP_WINDOW_CLASS=Code
 
 EXPOSE 8080

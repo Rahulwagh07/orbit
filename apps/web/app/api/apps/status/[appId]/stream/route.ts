@@ -3,6 +3,8 @@ import Redis from "ioredis";
 import { env } from "@repo/env";
 import { prisma } from "@repo/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ appId: string }> }
@@ -16,6 +18,10 @@ export async function GET(
   }
 
   const redis = new Redis(env.REDIS_URL);
+  redis.on("error", (err) => {
+    console.error("Redis connection error in status stream:", err);
+  });
+  
   let cleanup = () => {
     void redis.quit().catch(() => undefined);
   };

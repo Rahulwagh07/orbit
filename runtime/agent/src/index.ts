@@ -35,6 +35,7 @@ const ENABLE_GPU = process.env.RUNTIME_ENABLE_GPU === "1";
 const VIDEO_ENCODER = process.env.VIDEO_ENCODER || (ENABLE_GPU ? "h264_nvenc" : "libx264");
 const ADVERTISE_SERVER_REFLEXIVE_CANDIDATE = process.env.ICE_ADVERTISE_SRFLX === "1";
 const APP_COMMAND = process.env.APP_COMMAND || "chromium";
+const APP_EXECUTABLE = process.env.APP_EXECUTABLE || APP_COMMAND;
 const APP_WINDOW_CLASS = process.env.APP_WINDOW_CLASS || "chromium";
 const APP_EXTRA_ARGS = process.env.APP_EXTRA_ARGS ? process.env.APP_EXTRA_ARGS.split(",") : [];
 const execFileAsync = promisify(execFile);
@@ -130,7 +131,9 @@ async function startDesktopApp(): Promise<void> {
     appArgs = [...APP_EXTRA_ARGS];
   }
 
-  const app = spawn(APP_COMMAND, appArgs, { env, stdio: "ignore" });
+  const app = spawn(APP_EXECUTABLE, appArgs, { env, stdio: ["ignore", "pipe", "pipe"] });
+  app.stdout?.on("data", (data) => log(`[${APP_COMMAND} stdout]`, data.toString().trim()));
+  app.stderr?.on("data", (data) => log(`[${APP_COMMAND} stderr]`, data.toString().trim()));
   app.on("error", (error) => log(`${APP_COMMAND} failed to start:`, error.message));
   app.on("exit", (code, signal) => log(`${APP_COMMAND} exited:`, code, signal));
   await waitForAppWindow();
@@ -200,6 +203,8 @@ class H264Source {
   private rtpTimestamp = (Math.random() * 0xffffffff) >>> 0;
   private restarting = false;
   private restartTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private lastKeyframeRequestTime = 0;
 
   constructor(
     private readonly track: MediaStreamTrack,
@@ -272,6 +277,14 @@ class H264Source {
 
   requestKeyframe(): void {
     if (this.restarting || !this.ffmpeg) return;
+
+    const now = Date.now();
+    if (now - this.lastKeyframeRequestTime < 2000) {
+      log("PLI received, ignoring due to cooldown");
+      return;
+    }
+    this.lastKeyframeRequestTime = now;
+
     log("PLI received, restarting encoder for keyframe");
     this.restarting = true;
     this.stop(false);
