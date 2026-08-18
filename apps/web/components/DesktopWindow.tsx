@@ -9,13 +9,22 @@ import { useDragControls } from "framer-motion";
 
 interface DesktopWindowProps {
   windowState: WindowState;
+  isMinimized: boolean;
+  isMaximized: boolean;
+  onToggleMinimize: () => void;
+  onToggleMaximize: () => void;
   onClose: () => void;
 }
 
-export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
+export function DesktopWindow({ 
+  windowState, 
+  isMinimized, 
+  isMaximized, 
+  onToggleMinimize, 
+  onToggleMaximize, 
+  onClose 
+}: DesktopWindowProps) {
   const [position] = useState({ x: 100, y: 100 });
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
   const dragControls = useDragControls();
 
   return (
@@ -25,15 +34,24 @@ export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
       dragListener={false}
       dragControls={dragControls}
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+      animate={isMinimized ? {
+        opacity: 0,
+        scale: 0.05,
+        y: 400,
+      } : {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+      }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
       style={{
         position: "absolute",
         left: isMaximized ? 0 : position.x,
         top: isMaximized ? 0 : position.y,
-        width: isMaximized ? "100vw" : 1000,
-        height: isMinimized ? 40 : isMaximized ? "100vh" : 600,
+        width: isMaximized ? "100%" : "min(95%, 1024px)",
+        height: isMaximized ? "100%" : "min(90%, 650px)",
         zIndex: isMaximized ? 40 : 10,
+        pointerEvents: isMinimized ? "none" : "auto",
       }}
       className="bg-black/90 rounded-xl overflow-hidden shadow-2xl border border-white/20 flex flex-col"
     >
@@ -48,10 +66,10 @@ export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
           <button type="button" title="Close" onPointerDown={(e) => e.stopPropagation()} onClick={onClose} className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center group">
             <X size={10} className="opacity-0 group-hover:opacity-100 text-black" />
           </button>
-          <button type="button" title={isMinimized ? "Restore" : "Minimize"} onPointerDown={(e) => e.stopPropagation()} onClick={() => setIsMinimized((value) => !value)} className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center group">
+          <button type="button" title={isMinimized ? "Restore" : "Minimize"} onPointerDown={(e) => e.stopPropagation()} onClick={onToggleMinimize} className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center group">
             <Minus size={10} className="opacity-0 group-hover:opacity-100 text-black" />
           </button>
-          <button type="button" title={isMaximized ? "Restore" : "Maximize"} onPointerDown={(e) => e.stopPropagation()} onClick={() => { setIsMaximized((value) => !value); setIsMinimized(false); }} className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center group">
+          <button type="button" title={isMaximized ? "Restore" : "Maximize"} onPointerDown={(e) => e.stopPropagation()} onClick={onToggleMaximize} className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center group">
             <Maximize2 size={10} className="opacity-0 group-hover:opacity-100 text-black" />
           </button>
         </div>
@@ -62,15 +80,13 @@ export function DesktopWindow({ windowState, onClose }: DesktopWindowProps) {
       </div>
 
       {/* Content */}
-      {!isMinimized && (
-        <div className="flex-1 bg-[#0a0a0a] relative flex items-center justify-center overflow-hidden">
-          {windowState.status === "deploying" ? (
-            <DeploymentProgress phase={windowState.phase || "INITIALIZING"} />
-          ) : (
-            <RemoteApplicationSurface windowState={windowState} />
-          )}
-        </div>
-      )}
+      <div className="flex-1 bg-[#0a0a0a] relative flex items-center justify-center overflow-hidden">
+        {windowState.status === "deploying" ? (
+          <DeploymentProgress phase={windowState.phase || "INITIALIZING"} />
+        ) : (
+          <RemoteApplicationSurface windowState={windowState} />
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -102,8 +118,6 @@ function DeploymentProgress({ phase }: { phase: string }) {
         {DEPLOYMENT_STEPS.map((step, index) => {
           const isCompleted = index < activeIndex || phase === "READY";
           const isActive = index === activeIndex && !isFailed && phase !== "READY";
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const isPending = index > activeIndex && phase !== "READY";
 
           return (
             <div key={step.id} className="flex items-center gap-4 relative">

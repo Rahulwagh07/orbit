@@ -1,6 +1,6 @@
 import http from "http";
 import { execFile, spawn, type ChildProcess } from "child_process";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { promisify } from "util";
 import { createSocket, type Socket } from "dgram";
 import { type AddressInfo } from "net";
@@ -99,7 +99,44 @@ async function waitForAppWindow(timeoutMs = 15000): Promise<void> {
   throw new Error(`${APP_COMMAND} window did not become visible`);
 }
 
+function setupFluxboxConfig(): void {
+  const home = pulseEnv.HOME || "/home/infinity";
+  const fluxboxDir = `${home}/.fluxbox`;
+  try {
+    if (!existsSync(fluxboxDir)) {
+      mkdirSync(fluxboxDir, { recursive: true });
+    }
+    const appsContent = `
+[app] (chromium)
+  [Deco] {NONE}
+  [Position] {0 0}
+  [Dimensions] {1280 720}
+[end]
+[app] (chromium-browser)
+  [Deco] {NONE}
+  [Position] {0 0}
+  [Dimensions] {1280 720}
+[end]
+[app] (code)
+  [Deco] {NONE}
+  [Position] {0 0}
+  [Dimensions] {1280 720}
+[end]
+[app] (Code)
+  [Deco] {NONE}
+  [Position] {0 0}
+  [Dimensions] {1280 720}
+[end]
+`;
+    writeFileSync(`${fluxboxDir}/apps`, appsContent.trim());
+    log("fluxbox apps configuration written successfully");
+  } catch (error) {
+    log("failed to write fluxbox apps configuration:", error);
+  }
+}
+
 async function startDesktopApp(): Promise<void> {
+  setupFluxboxConfig();
   const env = { ...pulseEnv, DISPLAY: ":99", PULSE_SINK: "auto_null" };
   const gpuArgs = ENABLE_GPU
     ? ["--ignore-gpu-blocklist", "--enable-gpu-rasterization", "--use-gl=egl"]

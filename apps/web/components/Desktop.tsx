@@ -18,6 +18,9 @@ export interface WindowState {
   status: string
   title: string
   phase?: string
+  applicationType?: string
+  isMinimized?: boolean
+  isMaximized?: boolean
 }
 
 export function Desktop() {
@@ -56,6 +59,9 @@ export function Desktop() {
                 status: w.status,
                 title: w.title || APP_TITLES[w.application_type || ''] || 'Application',
                 phase: 'INITIALIZING',
+                applicationType: w.application_type,
+                isMinimized: false,
+                isMaximized: false,
               })
             )
           )
@@ -85,6 +91,9 @@ export function Desktop() {
         status: data.status,
         title: APP_TITLES[appType] || appType,
         phase: 'INITIALIZING',
+        applicationType: appType,
+        isMinimized: false,
+        isMaximized: false,
       }
 
       setWindows(prev => [...prev, newWindow])
@@ -147,6 +156,38 @@ export function Desktop() {
     }
   }
 
+  const handleToggleMinimize = (id: string) => {
+    setWindows(prev =>
+      prev.map(w => (w.id === id ? { ...w, isMinimized: !w.isMinimized } : w))
+    )
+  }
+
+  const handleToggleMaximize = (id: string) => {
+    setWindows(prev =>
+      prev.map(w =>
+        w.id === id
+          ? { ...w, isMaximized: !w.isMaximized, isMinimized: false }
+          : w
+      )
+    )
+  }
+
+  const handleToggleAppWindows = (appId: string) => {
+    const appWins = windows.filter(w => w.applicationType === appId)
+    if (appWins.length === 0) {
+      handleLaunchApp(appId as 'chromium' | 'vscode')
+    } else {
+      const allMinimized = appWins.every(w => w.isMinimized)
+      setWindows(prev =>
+        prev.map(w =>
+          w.applicationType === appId
+            ? { ...w, isMinimized: !allMinimized }
+            : w
+        )
+      )
+    }
+  }
+
   const handleCloseWindow = async (id: string) => {
     statusStreamsRef.current.get(id)?.close()
     statusStreamsRef.current.delete(id)
@@ -180,10 +221,14 @@ export function Desktop() {
         <DesktopWindow
           key={win.id}
           windowState={win}
+          isMinimized={win.isMinimized || false}
+          isMaximized={win.isMaximized || false}
+          onToggleMinimize={() => handleToggleMinimize(win.id)}
+          onToggleMaximize={() => handleToggleMaximize(win.id)}
           onClose={() => handleCloseWindow(win.id)}
         />
       ))}
-      <Dock onLaunchApp={handleLaunchApp} />
+      <Dock windows={windows} onToggleAppWindows={handleToggleAppWindows} />
     </div>
   )
 }

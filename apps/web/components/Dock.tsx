@@ -1,24 +1,51 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { WindowState } from './Desktop'
 
 interface DockProps {
-  onLaunchApp: (app: 'chromium' | 'vscode') => void
+  windows: WindowState[]
+  onToggleAppWindows: (app: 'chromium' | 'vscode') => void
 }
 
-export function Dock({ onLaunchApp }: DockProps) {
+export function Dock({ windows, onToggleAppWindows }: DockProps) {
+  const chromeWins = windows.filter(w => w.applicationType === 'chromium')
+  const vscodeWins = windows.filter(w => w.applicationType === 'vscode')
+
+  const chromeStatus = chromeWins.length === 0 
+    ? 'none' 
+    : chromeWins.every(w => w.isMinimized) 
+      ? 'minimized' 
+      : 'active'
+
+  const vscodeStatus = vscodeWins.length === 0 
+    ? 'none' 
+    : vscodeWins.every(w => w.isMinimized) 
+      ? 'minimized' 
+      : 'active'
+
   return (
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
       <div className="flex items-center gap-4 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl">
         <div className="relative group flex flex-col items-center">
           <motion.button
             whileHover={{ scale: 1.1, y: -10 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => onLaunchApp('chromium')}
-            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg"
+            onClick={() => onToggleAppWindows('chromium')}
+            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg relative"
           >
             <ChromeSVG />
           </motion.button>
+
+          {chromeStatus !== 'none' && (
+            <span 
+              className={`w-1.5 h-1.5 rounded-full absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${
+                chromeStatus === 'active' 
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' 
+                  : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
+              }`}
+            />
+          )}
 
           <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-xs px-2 py-1 rounded">
             Chromium
@@ -29,11 +56,21 @@ export function Dock({ onLaunchApp }: DockProps) {
           <motion.button
             whileHover={{ scale: 1.1, y: -10 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => onLaunchApp('vscode')}
-            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg"
+            onClick={() => onToggleAppWindows('vscode')}
+            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg relative"
           >
             <VSCodeSVG />
           </motion.button>
+
+          {vscodeStatus !== 'none' && (
+            <span 
+              className={`w-1.5 h-1.5 rounded-full absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${
+                vscodeStatus === 'active' 
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' 
+                  : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
+              }`}
+            />
+          )}
 
           <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
             VS Code
