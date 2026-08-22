@@ -18,7 +18,7 @@ must be modified and what to add.
 | -------------- | --------------------------- | -------------------- |
 | App id (lower) | lowercase string            | `brave`              |
 | DB enum value  | UPPERCASE of app id         | `BRAVE`              |
-| Docker image   | `infinity-<app-id>`         | `infinity-brave`     |
+| Docker image   | `orbit-<app-id>`         | `orbit-brave`     |
 | Window class   | exact WM_CLASS of the app   | `Brave-browser`      |
 
 Find the exact WM_CLASS by running `xprop WM_CLASS` on the app window, or via
@@ -93,7 +93,7 @@ generic runtime agent uses to launch the app inside Xvfb/fluxbox:
 const APP_CONFIG = {
   // ...
   brave: {
-    image: "infinity-brave",
+    image: "orbit-brave",
     env: { APP_COMMAND: "brave", APP_WINDOW_CLASS: "Brave-browser" },
   },
 }
@@ -106,7 +106,7 @@ const APP_CONFIG = {
 
 Rules:
 
-- Base must be `FROM infinity-chromium` (Xvfb, fluxbox, ffmpeg, xdotool,
+- Base must be `FROM orbit-chromium` (Xvfb, fluxbox, ffmpeg, xdotool,
   node 18, WebRTC agent build steps). Never fork the base stack.
 - Install the real desktop application — do not substitute downgraded or
   web-based variants.
@@ -116,7 +116,7 @@ Rules:
   the agent).
 - Build from repo root:
   ```
-  docker build -f runtime/agent/Dockerfile.<app-id> -t infinity-<app-id> .
+  docker build -f runtime/agent/Dockerfile.<app-id> -t orbit-<app-id> .
   ```
 
 ## 6. UI Desktop — titles and launch types
@@ -142,7 +142,7 @@ Rules:
 ## 8. Verify
 
 1. `bun run check-types` and `bun run lint` at repo root.
-2. Build the image: `docker build -f runtime/agent/Dockerfile.<app-id> -t infinity-<app-id> .`
+2. Build the image: `docker build -f runtime/agent/Dockerfile.<app-id> -t orbit-<app-id> .`
 3. Start infra (`docker/docker-compose.yml`), run web + worker.
 4. Click the new dock icon: window appears, deployment phases stream through
    READY, and the app's window is interactive (mouse/keyboard over WebRTC).

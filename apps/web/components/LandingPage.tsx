@@ -32,7 +32,7 @@ export function LandingPage() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Monitor className="w-4 h-4 text-white" />
           </div>
-          <span className="font-semibold text-lg tracking-tight">Infinity</span>
+          <span className="font-semibold text-lg tracking-tight">Orbit</span>
         </div>
         
         <div className="flex items-center gap-4">
@@ -137,7 +137,7 @@ export function LandingPage() {
       
       {/* Footer */}
       <footer className="border-t border-zinc-800/50 py-12 text-center text-zinc-500 text-sm">
-        <p>© 2026 Cloud Infinity Inc. All rights reserved.</p>
+        <p>© 2026 Orbit. All rights reserved.</p>
       </footer>
     </div>
   );

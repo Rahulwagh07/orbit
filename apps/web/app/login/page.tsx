@@ -52,7 +52,7 @@ export default function LoginPage() {
             transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
             className="text-2xl font-bold tracking-tight mb-2"
           >
-            Cloud Infinity
+            Orbit
           </motion.h1>
           <motion.p 
             initial={{ y: 10, opacity: 0 }}
@@ -125,7 +125,7 @@ export default function LoginPage() {
           transition={{ duration: 0.5, delay: 0.7 }}
           className="mt-8 text-center text-xs text-white/40"
         >
-          <Link href="/" className="hover:text-white transition-colors">← Back to Cloud Infinity</Link>
+          <Link href="/" className="hover:text-white transition-colors">← Back to Orbit</Link>
         </motion.div>
 
       </div>

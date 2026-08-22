@@ -66,7 +66,7 @@ export function TechnicalTerminal() {
                 <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
                 <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
                 <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
-                <span className="text-zinc-500 text-[11px] ml-2 font-mono">cloud-infinity-cli</span>
+                <span className="text-zinc-500 text-[11px] ml-2 font-mono">orbit-cli</span>
               </div>
               <span className="text-emerald-400 text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
                 ACTIVE
@@ -114,7 +114,7 @@ export function TechnicalTerminal() {
           </h2>
 
           <p className="text-sm md:text-base text-zinc-400 font-normal leading-relaxed">
-            Whether you use our clean web interface or shortcuts, Cloud Infinity gives you total control over your cloud session.
+            Whether you use our clean web interface or shortcuts, Orbit gives you total control over your cloud session.
           </p>
 
           {/* Action Triggers */}

@@ -1,5 +1,5 @@
 {
-  "name": "cloud-infinity",
+  "name": "orbit",
   "private": true,
   "scripts": {
     "build": "turbo run build",

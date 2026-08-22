@@ -1,10 +1,10 @@
 # WebRTC runtime agent
 # Base: chromium runtime image (Xvfb, chromium, fluxbox, ffmpeg, xdotool, node 18)
-# Build from repo root: docker build -f runtime/agent/Dockerfile -t infinity-chromium .
-FROM infinity-chromium
+# Build from repo root: docker build -f runtime/agent/Dockerfile -t orbit-chromium .
+FROM orbit-chromium
 
 USER root
-WORKDIR /home/infinity
+WORKDIR /home/orbit
 
 RUN rm -rf node_modules
 RUN apt-get update \
@@ -18,9 +18,9 @@ COPY packages/typescript-config ./packages/typescript-config
 RUN sed -i 's|"extends": "../../packages/typescript-config/base.json"|"extends": "./packages/typescript-config/base.json"|' tsconfig.json
 RUN npm install --no-audit --no-fund
 RUN npm run build
-RUN rm -rf src packages && chown -R infinity:infinity /home/infinity
+RUN rm -rf src packages && chown -R orbit:orbit /home/orbit
 
-USER infinity
+USER orbit
 
 EXPOSE 8080
 

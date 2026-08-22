@@ -41,8 +41,8 @@ const APP_EXTRA_ARGS = process.env.APP_EXTRA_ARGS ? process.env.APP_EXTRA_ARGS.s
 const execFileAsync = promisify(execFile);
 const pulseEnv = {
   ...process.env,
-  HOME: process.env.HOME || "/home/infinity",
-  XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR || "/tmp/runtime-infinity",
+  HOME: process.env.HOME || "/home/orbit",
+  XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR || "/tmp/runtime-orbit",
 };
 let pulseAudioSource = process.env.PULSE_AUDIO_SOURCE || "auto_null.monitor";
 let desktopReady = false;
@@ -100,7 +100,7 @@ async function waitForAppWindow(timeoutMs = 15000): Promise<void> {
 }
 
 function setupFluxboxConfig(): void {
-  const home = pulseEnv.HOME || "/home/infinity";
+  const home = pulseEnv.HOME || "/home/orbit";
   const fluxboxDir = `${home}/.fluxbox`;
   try {
     if (!existsSync(fluxboxDir)) {

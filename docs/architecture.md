@@ -1,8 +1,8 @@
-# Architecture: Infinity-Style Cloud Computer MVP
+# Architecture: Orbit
 
 ## 1. System Overview
 
-An Infinity-style cloud computer: users open application windows (Chromium, VS Code, Terminal) in a macOS-like web desktop. Each window is backed by a Docker container running the real application inside a virtual display, streamed to the browser over WebRTC.
+Orbit is a cloud computer: users open application windows (Chromium, VS Code, Terminal) in a macOS-like web desktop. Each window is backed by a Docker container running the real application inside a virtual display, streamed to the browser over WebRTC.
 
 ```mermaid
 graph TD
@@ -147,7 +147,7 @@ On success the worker stores `deployedUrl` in the format
 `{GATEWAY_WS_URL}/session/{shortId}?port={port}&token={sessionToken}`
 (e.g. `ws://localhost:4001/session/a1b2c3?port=33211&token=<uuid>`).
 
-Supported applications (`APP_CONFIG` in the worker): `infinity-chromium` (chromium), `infinity-vscode` (VS Code), `infinity-terminal` (xfce4-terminal). Each maps to `APP_COMMAND` / `APP_WINDOW_CLASS` env vars consumed by the runtime agent.
+Supported applications (`APP_CONFIG` in the worker): `orbit-chromium` (chromium), `orbit-vscode` (VS Code), `orbit-terminal` (xfce4-terminal). Each maps to `APP_COMMAND` / `APP_WINDOW_CLASS` env vars consumed by the runtime agent.
 
 ## 6. SSE Progress Streaming
 
@@ -325,7 +325,7 @@ Failures during any pre-READY phase mark the deployment `FAILED` with `is_retrya
 
 ## 13. Security Boundaries
 
-- Containers run as the non-root user `infinity`; no host filesystem mounts and no Docker socket mounts.
+- Containers run as the non-root user `orbit`; no host filesystem mounts and no Docker socket mounts.
 - The browser only ever talks to the Next.js API and the Gateway - never to Docker or the container port directly (the agent socket is reachable on loopback of the host only).
 - The Gateway enforces layered authorization: JWT cookie, instance existence, `READY` status, port equality, workspace ownership, and per-deployment session token.
 - The agent independently enforces `SESSION_TOKEN` and allows a single active signaling session per container.

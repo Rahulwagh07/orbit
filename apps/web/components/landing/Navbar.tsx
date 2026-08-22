@@ -31,7 +31,7 @@ export function Navbar() {
         <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
           <Monitor className="w-4 h-4 text-white" />
         </div>
-        <span className="font-extrabold text-lg tracking-tight text-white">Cloud Infinity</span>
+        <span className="font-extrabold text-lg tracking-tight text-white">Orbit</span>
       </div>
 
       <div className="hidden md:flex items-center gap-8">

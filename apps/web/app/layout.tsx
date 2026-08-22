@@ -13,8 +13,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Cloud Infinity",
-  description: "Infinity-Style Cloud Computer MVP",
+  title: "Orbit",
+  description: "Cloud Computer MVP",
 };
 
 export default function RootLayout({

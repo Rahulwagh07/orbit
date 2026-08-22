@@ -143,8 +143,8 @@ export function CloudDesktopPreview() {
               exit={{ opacity: 0, scale: 0.98 }}
               className="w-full h-full font-mono text-xs text-zinc-300 text-left space-y-2 max-w-2xl bg-[#18181b] border border-white/10 rounded-xl p-6 shadow-2xl"
             >
-              <div className="text-zinc-500">// Cloud Infinity Remote Workspace</div>
-              <div className="text-indigo-400">import &#123; CloudWorkspace &#125; from "@cloud-infinity/core";</div>
+              <div className="text-zinc-500">// Orbit Remote Workspace</div>
+              <div className="text-indigo-400">import &#123; CloudWorkspace &#125; from "@orbit/core";</div>
               <div className="text-zinc-300 mt-2">const session = await CloudWorkspace.launch(&#123;</div>
               <div className="text-zinc-300">  app: "chromium",</div>
               <div className="text-zinc-300">  persistSession: true,</div>
@@ -160,7 +160,7 @@ export function CloudDesktopPreview() {
               exit={{ opacity: 0, scale: 0.98 }}
               className="w-full h-full font-mono text-xs text-zinc-300 text-left space-y-2 max-w-2xl bg-[#18181b] border border-white/10 rounded-xl p-6 shadow-2xl"
             >
-              <div className="text-indigo-400">$ cloud-infinity session status</div>
+              <div className="text-indigo-400">$ orbit session status</div>
               <div className="text-zinc-400">• Remote Instance:  Online</div>
               <div className="text-zinc-400">• Video Pipeline:   WebRTC H.265 (60 FPS)</div>
               <div className="text-zinc-400">• Motion Latency:   11.4 ms</div>

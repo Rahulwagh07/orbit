@@ -17,7 +17,7 @@ export function ProductTransition() {
         </h2>
         <p className="mt-6 text-lg text-white/60 font-medium max-w-2xl mx-auto leading-relaxed">
           The application itself runs on isolated remote compute. 
-          When you launch an application, Cloud Infinity provisions a dedicated container, 
+          When you launch an application, Orbit provisions a dedicated container, 
           starts the process, and establishes a bidirectional low-latency data channel.
         </p>
       </motion.div>

@@ -12,7 +12,7 @@ export function Footer() {
             <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
               <Monitor className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-extrabold text-lg tracking-tight text-white">Cloud Infinity</span>
+            <span className="font-extrabold text-lg tracking-tight text-white">Orbit</span>
           </div>
           <p className="text-sm text-zinc-400 font-normal">
             Your computer, anywhere you go.
@@ -42,7 +42,7 @@ export function Footer() {
       </div>
 
       <div className="max-w-5xl mx-auto mt-12 pt-8 border-t border-white/5 flex justify-between items-center text-xs text-zinc-500 font-mono">
-        <span>&copy; {currentYear} Cloud Infinity. All rights reserved.</span>
+        <span>&copy; {currentYear} Orbit. All rights reserved.</span>
         <span className="text-indigo-400">All Systems Operational</span>
       </div>
     </footer>

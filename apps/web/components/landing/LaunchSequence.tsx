@@ -8,12 +8,12 @@ const workflowSteps = [
   {
     id: 1,
     title: "1. Open your web browser",
-    subtitle: "Navigate to Cloud Infinity from any laptop, tablet, or cheap device.",
+    subtitle: "Navigate to Orbit from any laptop, tablet, or cheap device.",
     detail: "No native app downloads, no administrator privileges required. Works inside Chrome, Safari, Edge, or Brave.",
     badge: "Any Browser",
     view: {
       type: "url",
-      url: "https://cloudinfinity.app/workspace",
+      url: "https://app.orbit.dev/workspace",
       status: "DNS Resolved • Ready",
     },
   },

@@ -20,7 +20,7 @@ export function ArchitectureDiagram() {
               Turn any Chromebook or tablet into a workstation.
             </h3>
             <p className="text-sm md:text-base text-zinc-400 leading-relaxed font-normal">
-              Heavy software consumes massive CPU cycles and drains laptop battery. With Cloud Infinity, all computation happens in high-speed cloud clusters.
+              Heavy software consumes massive CPU cycles and drains laptop battery. With Orbit, all computation happens in high-speed cloud clusters.
             </p>
             <div className="space-y-2 pt-2 text-xs font-mono text-zinc-300">
               <div className="flex items-center gap-2">

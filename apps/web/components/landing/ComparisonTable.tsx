@@ -6,37 +6,37 @@ import { Check, X, Sparkles } from "lucide-react";
 const rows = [
   {
     feature: "Setup & Provisioning Time",
-    cloudInfinity: "< 1 Second",
+    orbit: "< 1 Second",
     traditionalVdi: "5 - 15 Minutes",
     localMachine: "Hours / OS Setup",
   },
   {
     feature: "Motion Stream Frame Rate",
-    cloudInfinity: "60 FPS Ultra-HD",
+    orbit: "60 FPS Ultra-HD",
     traditionalVdi: "15 - 30 FPS Laggy",
     localMachine: "Native Hardware",
   },
   {
     feature: "Glass-to-Glass Latency",
-    cloudInfinity: "< 15ms WebRTC",
+    orbit: "< 15ms WebRTC",
     traditionalVdi: "150ms+ RDP/VNC",
     localMachine: "0ms Local",
   },
   {
     feature: "Isolated Sandbox Protection",
-    cloudInfinity: true,
+    orbit: true,
     traditionalVdi: false,
     localMachine: false,
   },
   {
     feature: "Cross-Device Handoff",
-    cloudInfinity: true,
+    orbit: true,
     traditionalVdi: false,
     localMachine: false,
   },
   {
     feature: "Battery & Thermal Friendly",
-    cloudInfinity: true,
+    orbit: true,
     traditionalVdi: false,
     localMachine: false,
   },
@@ -53,10 +53,10 @@ export function ComparisonTable() {
             <span>The Modern Standard</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Why Cloud Infinity Wins
+            Why Orbit Wins
           </h2>
           <p className="mt-3 text-base text-white/60 font-normal">
-            See how Cloud Infinity compares to legacy desktop streaming and traditional hardware.
+            See how Orbit compares to legacy desktop streaming and traditional hardware.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export function ComparisonTable() {
                     Capability
                   </th>
                   <th className="py-4 px-6 font-extrabold text-indigo-400 bg-indigo-500/10 border-x border-indigo-500/20 text-sm">
-                    Cloud Infinity
+                    Orbit
                   </th>
                   <th className="py-4 px-6 font-medium text-white/60">
                     Legacy VDI / Citrix
@@ -87,8 +87,8 @@ export function ComparisonTable() {
                       {row.feature}
                     </td>
                     <td className="py-4 px-6 font-bold text-emerald-400 bg-indigo-500/5 border-x border-indigo-500/10">
-                      {typeof row.cloudInfinity === "boolean" ? (
-                        row.cloudInfinity ? (
+                      {typeof row.orbit === "boolean" ? (
+                        row.orbit ? (
                           <div className="flex items-center gap-1.5 text-emerald-400">
                             <Check className="w-4 h-4" /> Yes
                           </div>
@@ -96,7 +96,7 @@ export function ComparisonTable() {
                           <X className="w-4 h-4 text-red-400" />
                         )
                       ) : (
-                        row.cloudInfinity
+                        row.orbit
                       )}
                     </td>
                     <td className="py-4 px-6 text-white/50">

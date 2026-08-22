@@ -12,7 +12,7 @@ const features = [
     title: "Stream Any Desktop App",
     tagline: "Heavy applications running at full speed directly inside your web browser.",
     description:
-      "Run Chromium, VS Code, Blender, or custom Linux software without installing anything locally. Cloud Infinity streams high-definition video frames to your display while capturing mouse and keyboard inputs with sub-frame precision.",
+      "Run Chromium, VS Code, Blender, or custom Linux software without installing anything locally. Orbit streams high-definition video frames to your display while capturing mouse and keyboard inputs with sub-frame precision.",
     highlights: [
       "Ultra-low latency streaming (<15ms)",
       "Native keyboard shortcuts & clipboard passthrough",
@@ -116,7 +116,7 @@ export function FeatureShowcase() {
             Designed for Speed, Privacy & Power
           </h2>
           <p className="mt-4 text-base sm:text-lg text-white/60 font-normal">
-            Cloud Infinity eliminates the boundaries between local software and cloud performance.
+            Orbit eliminates the boundaries between local software and cloud performance.
           </p>
         </div>
 

@@ -9,15 +9,15 @@ import { pollHealthCheck } from "./health-check";
 
 const APP_CONFIG: Record<string, { image: string; env: Record<string, string> }> = {
   chromium: {
-    image: "infinity-chromium",
+    image: "orbit-chromium",
     env: { APP_COMMAND: "chromium", APP_WINDOW_CLASS: "chromium" },
   },
   vscode: {
-    image: "infinity-vscode",
+    image: "orbit-vscode",
     env: { APP_COMMAND: "code", APP_WINDOW_CLASS: "Code" },
   },
   terminal: {
-    image: "infinity-terminal",
+    image: "orbit-terminal",
     env: { APP_COMMAND: "xfce4-terminal", APP_WINDOW_CLASS: "Xfce4-terminal" },
   },
 };

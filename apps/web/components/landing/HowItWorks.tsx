@@ -42,7 +42,7 @@ export function HowItWorks() {
             <span>Effortless Workflow</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-            How Cloud Infinity Works
+            How Orbit Works
           </h2>
           <p className="mt-4 text-base sm:text-lg text-white/60 font-normal">
             Three simple steps to transform any web browser into a full-featured desktop computer.
