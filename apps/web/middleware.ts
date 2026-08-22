@@ -19,7 +19,11 @@ export async function middleware(request: NextRequest) {
   // If access token exists, verify it
   if (accessToken) {
     try {
-      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-for-development-only-do-not-use-in-production');
+      const secret = process.env.JWT_SECRET;
+      if (!secret) {
+        throw new Error('JWT_SECRET is not set. Define it in .env.local');
+      }
+      const secretKey = new TextEncoder().encode(secret);
       await jwtVerify(accessToken, secretKey);
       return NextResponse.next();
     } catch {

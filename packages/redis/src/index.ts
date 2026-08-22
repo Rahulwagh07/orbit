@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { env } from "@repo/env";
+import { env } from "@repo/env/redis";
 
 const globalForRedis = globalThis as unknown as { redis: Redis | undefined };
 

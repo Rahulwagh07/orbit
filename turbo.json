@@ -1,7 +1,22 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["REDIS_URL", "DATABASE_URL", "JWT_SECRET"],
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "JWT_SECRET",
+    "NEXT_PUBLIC_APP_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "NEXT_PUBLIC_TURN_URL",
+    "NEXT_PUBLIC_TURN_USERNAME",
+    "NEXT_PUBLIC_TURN_CREDENTIAL",
+    "GATEWAY_PORT",
+    "GATEWAY_WS_URL",
+    "RUNTIME_ENABLE_GPU",
+    "VIDEO_ENCODER"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

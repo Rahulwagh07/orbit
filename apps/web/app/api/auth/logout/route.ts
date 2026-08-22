@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clearSession } from "../../../../lib/auth/session";
-import { env } from "@repo/env";
+import { env } from "@repo/env/web";
 
 export async function POST() {
   await clearSession();

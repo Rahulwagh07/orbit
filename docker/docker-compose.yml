@@ -1,11 +1,12 @@
+# docker compose -f docker/docker-compose.yml --env-file .env.local up -d
 services:
   postgres:
     image: postgres:17
     container_name: infinity-postgres
     environment:
-      POSTGRES_USER: infinity
-      POSTGRES_PASSWORD: infinity
-      POSTGRES_DB: infinity
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env.local (see .env.example)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.local (see .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env.local (see .env.example)}
     ports:
       - '5432:5432'
     volumes:

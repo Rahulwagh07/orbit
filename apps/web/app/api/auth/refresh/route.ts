@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@repo/db";
 import { signAccessToken } from "../../../../lib/auth/jwt";
-import { env } from "@repo/env";
+import { env } from "@repo/env/web";
 
 export async function POST() {
   const cookieStore = await cookies();

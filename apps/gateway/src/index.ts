@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import http from "http";
 import { prisma } from "@repo/db";
 import { jwtVerify } from "jose";
-import { env } from "@repo/env";
+import { env } from "@repo/env/gateway";
 
 const secretKey = new TextEncoder().encode(env.JWT_SECRET);
 
@@ -244,6 +244,6 @@ wss.on("connection", async (ws, req) => {
   void connectAgent();
 });
 
-server.listen(4001, () => {
-  console.log("Gateway WebRTC Signaling Server listening on ws://localhost:4001");
+server.listen(env.GATEWAY_PORT, () => {
+  console.log(`Gateway WebRTC Signaling Server listening on ${env.GATEWAY_WS_URL}`);
 });

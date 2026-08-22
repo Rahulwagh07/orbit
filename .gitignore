@@ -5,12 +5,13 @@ node_modules
 .pnp
 .pnp.js
 
-# Local env files
+# Local env files (never commit secrets — commit only *.example templates)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+local.env
+local.env.*
+!.env.example
+!*.env.example
 
 # Testing
 coverage

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import Redis from "ioredis";
-import { env } from "@repo/env";
+import { env } from "@repo/env/web";
 import { prisma } from "@repo/db";
 
 export const dynamic = "force-dynamic";

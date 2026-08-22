@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { env } from "@repo/env";
+import { env } from "@repo/env/web";
 import { prisma } from "@repo/db";
 import { createSession } from "../../../../../lib/auth/session";
 

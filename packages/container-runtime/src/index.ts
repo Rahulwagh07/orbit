@@ -1,5 +1,6 @@
 import { spawn, execFile } from "child_process";
 import { promisify } from "util";
+import { env } from "@repo/env/runtime";
 
 const execFileAsync = promisify(execFile);
 
@@ -38,7 +39,7 @@ export class DockerContainerRuntime implements ContainerRuntime {
     const dockerArgs = [
       "run", "-d",
       "--security-opt", "seccomp=unconfined",
-      ...(process.env.RUNTIME_ENABLE_GPU === "1" ? ["--gpus", "all"] : []),
+      ...(env.RUNTIME_ENABLE_GPU === "1" ? ["--gpus", "all"] : []),
       "--name", containerName,
       "-p", `${config.port}:8080`,
       ...(config.udpPorts
@@ -48,8 +49,8 @@ export class DockerContainerRuntime implements ContainerRuntime {
             "-e", `ICE_PORT_MAX=${config.udpPorts[1]}`,
           ]
         : []),
-      "-e", `RUNTIME_ENABLE_GPU=${process.env.RUNTIME_ENABLE_GPU === "1" ? "1" : "0"}`,
-      "-e", `VIDEO_ENCODER=${process.env.VIDEO_ENCODER || "libx264"}`,
+      "-e", `RUNTIME_ENABLE_GPU=${env.RUNTIME_ENABLE_GPU === "1" ? "1" : "0"}`,
+      "-e", `VIDEO_ENCODER=${env.VIDEO_ENCODER}`,
       ...(config.env
         ? Object.entries(config.env).flatMap(([k, v]) => ["-e", `${k}=${v}`])
         : []),

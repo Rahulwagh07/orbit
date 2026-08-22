@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@repo/db";
 import { signAccessToken, verifyAccessToken, SessionPayload } from "./jwt";
-import { env } from "@repo/env";
+import { env } from "@repo/env/web";
 
 const ACCESS_TOKEN_COOKIE = "access_token";
 const REFRESH_TOKEN_COOKIE = "refresh_token";

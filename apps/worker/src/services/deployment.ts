@@ -1,5 +1,6 @@
 import { redis } from "@repo/redis";
 import { prisma } from "@repo/db";
+import { env } from "@repo/env/worker";
 import crypto from "crypto";
 import { DeploymentStateMachine, DeploymentEvent } from "@repo/deployment";
 import { DockerContainerRuntime } from "@repo/container-runtime";
@@ -100,7 +101,7 @@ export class DeploymentService {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       await stateMachine.transition("READY", {
-        deployed_url: `ws://localhost:4001/session/${instanceId}?port=${port}&token=${sessionToken}`
+        deployed_url: `${env.GATEWAY_WS_URL}/session/${instanceId}?port=${port}&token=${sessionToken}`
       });
 
     } catch (error: unknown) {

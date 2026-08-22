@@ -73,6 +73,9 @@
     },
     "packages/container-runtime": {
       "name": "@repo/container-runtime",
+      "dependencies": {
+        "@repo/env": "*",
+      },
     },
     "packages/db": {
       "name": "@repo/db",

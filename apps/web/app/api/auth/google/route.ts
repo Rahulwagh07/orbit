@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { env } from "@repo/env";
+import { env } from "@repo/env/web";
 
 export async function GET() {
   if (!env.GOOGLE_CLIENT_ID) {
