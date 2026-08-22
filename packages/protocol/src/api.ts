@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const CreateWindowRequestSchema = z.object({
-  application: z.enum(["chromium", "vscode"])
+  application: z.enum(["chromium", "vscode", "terminal"])
 });
 
 export const CreateWindowResponseSchema = z.object({
@@ -29,7 +29,7 @@ export const HeartbeatResponseSchema = z.object({
 export const DeploymentJobSchema = z.object({
   type: z.enum(["deploy", "stop"]),
   instanceId: z.string(),
-  application: z.enum(["chromium", "vscode"]).optional()
+  application: z.enum(["chromium", "vscode", "terminal"]).optional()
 });
 
 export type CreateWindowRequest = z.infer<typeof CreateWindowRequestSchema>;

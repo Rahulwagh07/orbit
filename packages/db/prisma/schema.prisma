@@ -143,6 +143,7 @@ model Deployment {
 enum ApplicationType {
   CHROMIUM
   VSCODE
+  TERMINAL
 }
 
 enum InstanceStatus {

@@ -8,6 +8,7 @@ import { useAuth } from './AuthProvider'
 const APP_TITLES: Record<string, string> = {
   chromium: 'Chromium',
   vscode: 'Visual Studio Code',
+  terminal: 'Terminal',
 }
 
 export interface WindowState {
@@ -73,7 +74,7 @@ export function Desktop() {
     fetchWindows()
   }, [])
 
-  const handleLaunchApp = async (appType: 'chromium' | 'vscode') => {
+  const handleLaunchApp = async (appType: 'chromium' | 'vscode' | 'terminal') => {
     try {
       const res = await fetch('/api/windows', {
         method: 'POST',
@@ -175,7 +176,7 @@ export function Desktop() {
   const handleToggleAppWindows = (appId: string) => {
     const appWins = windows.filter(w => w.applicationType === appId)
     if (appWins.length === 0) {
-      handleLaunchApp(appId as 'chromium' | 'vscode')
+      handleLaunchApp(appId as 'chromium' | 'vscode' | 'terminal')
     } else {
       const allMinimized = appWins.every(w => w.isMinimized)
       setWindows(prev =>

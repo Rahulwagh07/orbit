@@ -22,9 +22,10 @@ export async function POST(req: Request) {
     }
 
     // Map application string to DB type and display name
-    const appTypeMap: Record<string, { type: 'CHROMIUM' | 'VSCODE'; name: string }> = {
+    const appTypeMap: Record<string, { type: 'CHROMIUM' | 'VSCODE' | 'TERMINAL'; name: string }> = {
       chromium: { type: 'CHROMIUM', name: 'Chromium' },
       vscode: { type: 'VSCODE', name: 'Visual Studio Code' },
+      terminal: { type: 'TERMINAL', name: 'Terminal' },
     }
     const appInfo = appTypeMap[parsed.data.application] || appTypeMap.chromium!
 

@@ -5,12 +5,13 @@ import { WindowState } from './Desktop'
 
 interface DockProps {
   windows: WindowState[]
-  onToggleAppWindows: (app: 'chromium' | 'vscode') => void
+  onToggleAppWindows: (app: 'chromium' | 'vscode' | 'terminal') => void
 }
 
 export function Dock({ windows, onToggleAppWindows }: DockProps) {
   const chromeWins = windows.filter(w => w.applicationType === 'chromium')
   const vscodeWins = windows.filter(w => w.applicationType === 'vscode')
+  const terminalWins = windows.filter(w => w.applicationType === 'terminal')
 
   const chromeStatus = chromeWins.length === 0 
     ? 'none' 
@@ -18,10 +19,16 @@ export function Dock({ windows, onToggleAppWindows }: DockProps) {
       ? 'minimized' 
       : 'active'
 
-  const vscodeStatus = vscodeWins.length === 0 
-    ? 'none' 
-    : vscodeWins.every(w => w.isMinimized) 
-      ? 'minimized' 
+  const vscodeStatus = vscodeWins.length === 0
+    ? 'none'
+    : vscodeWins.every(w => w.isMinimized)
+      ? 'minimized'
+      : 'active'
+
+  const terminalStatus = terminalWins.length === 0
+    ? 'none'
+    : terminalWins.every(w => w.isMinimized)
+      ? 'minimized'
       : 'active'
 
   return (
@@ -74,6 +81,31 @@ export function Dock({ windows, onToggleAppWindows }: DockProps) {
 
           <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
             VS Code
+          </div>
+        </div>
+
+        <div className="relative group flex flex-col items-center">
+          <motion.button
+            whileHover={{ scale: 1.1, y: -10 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onToggleAppWindows('terminal')}
+            className="w-14 h-14 flex items-center justify-center shadow-lg relative"
+          >
+            <TerminalSVG />
+          </motion.button>
+
+          {terminalStatus !== 'none' && (
+            <span
+              className={`w-1.5 h-1.5 rounded-full absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${
+                terminalStatus === 'active'
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                  : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
+              }`}
+            />
+          )}
+
+          <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+            Terminal
           </div>
         </div>
       </div>
@@ -147,6 +179,91 @@ function VSCodeSVG() {
     >
       <title>Visual Studio Code</title>
       <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z" />
+    </svg>
+  )
+}
+
+function TerminalSVG() {
+  return (
+    <svg
+      viewBox="0 0 128 128"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+    >
+      <title>Terminal</title>
+      <defs>
+        <linearGradient id="terminal-rim" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fdfdfd" />
+          <stop offset="0.35" stopColor="#e9e9eb" />
+          <stop offset="1" stopColor="#a6a7ab" />
+        </linearGradient>
+        <linearGradient id="terminal-face" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#48484a" />
+          <stop offset="0.18" stopColor="#2c2c2e" />
+          <stop offset="0.6" stopColor="#161618" />
+          <stop offset="1" stopColor="#000000" />
+        </linearGradient>
+        <linearGradient id="terminal-sheen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.09" />
+          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+        <clipPath id="terminal-face-clip">
+          <rect x="9" y="9" width="110" height="110" rx="25" />
+        </clipPath>
+      </defs>
+
+      {/* Metallic rim */}
+      <rect
+        x="4"
+        y="4"
+        width="120"
+        height="120"
+        rx="29"
+        fill="url(#terminal-rim)"
+      />
+      <rect
+        x="4.5"
+        y="4.5"
+        width="119"
+        height="119"
+        rx="28.5"
+        fill="none"
+        stroke="#75767b"
+        strokeOpacity="0.55"
+        strokeWidth="1"
+      />
+
+      {/* Terminal face */}
+      <rect x="9" y="9" width="110" height="110" rx="25" fill="url(#terminal-face)" />
+
+      {/* Glass sheen across the top half */}
+      <rect
+        x="9"
+        y="9"
+        width="110"
+        height="56"
+        fill="url(#terminal-sheen)"
+        clipPath="url(#terminal-face-clip)"
+      />
+
+      {/* Prompt glyph: > _ */}
+      <path
+        d="M41 50 L61 70 L41 90"
+        fill="none"
+        stroke="#f5f5f7"
+        strokeWidth="11"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <line
+        x1="69"
+        y1="84.5"
+        x2="95"
+        y2="84.5"
+        stroke="#f5f5f7"
+        strokeWidth="11"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }

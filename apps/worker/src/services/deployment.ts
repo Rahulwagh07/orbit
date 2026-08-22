@@ -15,6 +15,10 @@ const APP_CONFIG: Record<string, { image: string; env: Record<string, string> }>
     image: "infinity-vscode",
     env: { APP_COMMAND: "code", APP_WINDOW_CLASS: "Code" },
   },
+  terminal: {
+    image: "infinity-terminal",
+    env: { APP_COMMAND: "xfce4-terminal", APP_WINDOW_CLASS: "Xfce4-terminal" },
+  },
 };
 
 export class DeploymentService {
