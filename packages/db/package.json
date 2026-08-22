@@ -5,14 +5,17 @@
   "types": "./src/index.ts",
   "scripts": {
     "generate": "prisma generate",
+    "postinstall": "prisma generate",
     "migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/adapter-pg": "^7",
+    "@prisma/client": "^7",
+    "pg": "^8",
     "@repo/env": "*"
   },
   "devDependencies": {
     "dotenv": "^17.4.2",
-    "prisma": "^6"
+    "prisma": "^7"
   }
 }
