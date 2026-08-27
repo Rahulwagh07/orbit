@@ -197,12 +197,6 @@ function TerminalSVG() {
           <stop offset="0.35" stopColor="#e9e9eb" />
           <stop offset="1" stopColor="#a6a7ab" />
         </linearGradient>
-        <linearGradient id="terminal-face" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2b4a80" />
-          <stop offset="0.18" stopColor="#1b3260" />
-          <stop offset="0.6" stopColor="#101f42" />
-          <stop offset="1" stopColor="#08122a" />
-        </linearGradient>
         <linearGradient id="terminal-sheen" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.09" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
@@ -234,7 +228,7 @@ function TerminalSVG() {
       />
 
       {/* Terminal face */}
-      <rect x="9" y="9" width="110" height="110" rx="25" fill="url(#terminal-face)" />
+      <rect x="9" y="9" width="110" height="110" rx="25" fill="#000000" />
 
       {/* Glass sheen across the top half */}
       <rect
