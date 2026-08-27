@@ -198,10 +198,10 @@ function TerminalSVG() {
           <stop offset="1" stopColor="#a6a7ab" />
         </linearGradient>
         <linearGradient id="terminal-face" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#48484a" />
-          <stop offset="0.18" stopColor="#2c2c2e" />
-          <stop offset="0.6" stopColor="#161618" />
-          <stop offset="1" stopColor="#000000" />
+          <stop offset="0" stopColor="#2b4a80" />
+          <stop offset="0.18" stopColor="#1b3260" />
+          <stop offset="0.6" stopColor="#101f42" />
+          <stop offset="1" stopColor="#08122a" />
         </linearGradient>
         <linearGradient id="terminal-sheen" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.09" />
