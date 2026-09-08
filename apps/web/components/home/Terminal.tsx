@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 type HistItem = { cmd: string; out: string[] };
 
-const HELP = ["help: this list", "launch <chromium|vscode|terminal>: open something", "status: this machine, honestly", "clear: wipe the scroll"];
+const HELP = ["help: show this list", "launch <chromium|vscode|terminal>: start one of these", "status: look at your own machine", "clear: start over"];
 
 const APPS = ["chromium", "vscode", "terminal"];
 
@@ -37,7 +37,7 @@ export function Terminal({ onLaunch }: { onLaunch: (app: string) => void }) {
         return;
       }
       onLaunch(app);
-      setHist((h) => [...h, { cmd, out: [`${app} ready.`, `served from the cloud, drawn in this tab.`] }]);
+      setHist((h) => [...h, { cmd, out: [`In the real thing, ${app} would be running now.`, `Here you just get the words. Signed in, you get the app.`] }]);
       return;
     }
     if (verb === "status") {

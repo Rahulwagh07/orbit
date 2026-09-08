@@ -35,7 +35,8 @@ export function ComparisonSection() {
         <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
           <h2 className="font-display text-[30px] leading-tight">Same laptop, two readings.</h2>
           <p className="text-[14.5px] leading-relaxed text-muted">
-            A like-for-like open of the same project. Flip it.
+            I opened the same project two ways, once on this laptop and once on Orbit. Flip
+            between them and compare.
           </p>
         </div>
       </Reveal>

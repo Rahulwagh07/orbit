@@ -5,8 +5,8 @@ export function ProblemNote() {
     <section className="mt-6 max-w-md">
       <Reveal>
         <p className="text-[15.5px] leading-relaxed text-muted">
-          <span className="text-ink">A 4 GB installer to preview one file.</span> Fans on,
-          battery gone. That&apos;s the whole problem.
+          <span className="text-ink">I once downloaded a 4 GB installer just to peek at one file,</span>{" "}
+          and my fans ran the whole time. That download is the part Orbit skips.
         </p>
       </Reveal>
     </section>

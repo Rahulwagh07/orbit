@@ -5,10 +5,10 @@ import { useState } from "react";
 import { Reveal } from "./Reveal";
 
 const STEPS = [
-  { t: "0.0s", title: "Open the link", body: "Any browser, any weak laptop. Nothing to install." },
-  { t: "0.4s", title: "Pick an app", body: "Chromium, VS Code, terminal. A container boots for you." },
-  { t: "0.8s", title: "Stream starts", body: "Video down, keystrokes up. Feels local." },
-  { t: "later", title: "Close, resume anywhere", body: "State stays in the cloud. Nothing left behind." },
+  { t: "0.0s", title: "Open the link", body: "Whatever browser you already have, on whatever laptop. There is nothing to install." },
+  { t: "0.4s", title: "Pick an app", body: "You pick Chromium, VS Code, or the terminal, and a fresh machine starts up with it ready." },
+  { t: "0.8s", title: "Stream starts", body: "From here on you are watching video of that machine, and everything you type goes straight back to it, so it feels like yours." },
+  { t: "later", title: "Close, resume anywhere", body: "You can close the tab whenever you like. Everything you did is still sitting on that machine when you come back." },
 ];
 
 export function StreamTimeline() {

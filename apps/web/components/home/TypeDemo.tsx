@@ -11,15 +11,17 @@ export function TypeDemo() {
     <section id="type" className="mt-20 scroll-mt-20">
       <Reveal>
         <h2 className="font-display text-[32px] leading-tight sm:text-[36px]">
-          What happens if you type here?
+          Type what you need.
         </h2>
         <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-muted">
-          This box listens. Try <span className="font-mono text-[13px] text-ink">help</span>, then{" "}
-          <span className="font-mono text-[13px] text-ink">launch vscode</span>.
+          This box is only a demo, so nothing here really opens. Try{" "}
+          <span className="font-mono text-[13px] text-ink">help</span>, then{" "}
+          <span className="font-mono text-[13px] text-ink">launch vscode</span> anyway, and what you
+          see is what the real terminal shows you once you are signed in.
           {launched && (
             <>
               {" "}
-              Last opened: <span className="font-mono text-[13px] text-accent">{launched}</span>.
+              The last one you tried was <span className="font-mono text-[13px] text-accent">{launched}</span>.
             </>
           )}
         </p>

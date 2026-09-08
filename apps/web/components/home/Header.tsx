@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useLaunch } from "./useLaunch";
 
 export function Header() {
-  const { launch, label, isLoading } = useLaunch();
+  const { launch, shortLabel, isLoading } = useLaunch();
 
   return (
     <header>
@@ -28,7 +28,7 @@ export function Header() {
             onClick={launch}
             className="btn-accent group flex items-center gap-1.5 rounded-full px-4 py-2 text-[13px] font-medium"
           >
-            {label}
+            {shortLabel}
             <ArrowRight className="arr h-3.5 w-3.5" />
           </button>
         ) : (
