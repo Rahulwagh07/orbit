@@ -1,36 +1,23 @@
-import React from "react";
-import { Navbar } from "../components/landing/Navbar";
-import { Hero } from "../components/landing/Hero";
-import { ProductPrinciples } from "../components/landing/ProductPrinciples";
-import { LaunchSequence } from "../components/landing/LaunchSequence";
-import { RealtimeFlow } from "../components/landing/RealtimeFlow";
-import { ArchitectureDiagram } from "../components/landing/ArchitectureDiagram";
-import { ComputeInstance } from "../components/landing/ComputeInstance";
-import { TechnicalTerminal } from "../components/landing/TechnicalTerminal";
-import { FinalCTA } from "../components/landing/FinalCTA";
-import { Footer } from "../components/landing/Footer";
+import { ClosingCta } from "../components/home/ClosingCta";
+import { ComparisonSection } from "../components/home/ComparisonSection";
+import { Header } from "../components/home/Header";
+import { Hero } from "../components/home/Hero";
+import { ProblemNote } from "../components/home/ProblemNote";
+import { StreamTimeline } from "../components/home/StreamTimeline";
+import { TypeDemo } from "../components/home/TypeDemo";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans selection:bg-indigo-500/30 selection:text-indigo-100 overflow-x-hidden">
-      <Navbar />
-      <main>
+    <div className="min-h-screen bg-paper text-ink">
+      <Header />
+      <main className="mx-auto max-w-3xl px-6">
         <Hero />
-        <div id="product">
-          <ProductPrinciples />
-          <LaunchSequence />
-        </div>
-        <RealtimeFlow />
-        <ArchitectureDiagram />
-        <ComputeInstance />
-        <div id="terminal">
-          <TechnicalTerminal />
-        </div>
-        <FinalCTA />
+        <ProblemNote />
+        <TypeDemo />
+        <ComparisonSection />
+        <StreamTimeline />
+        <ClosingCta />
       </main>
-      <Footer />
     </div>
   );
 }
-
-

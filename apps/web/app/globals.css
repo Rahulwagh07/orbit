@@ -1,9 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-mac-bg: #18181b;
-  --color-mac-dock: rgba(255, 255, 255, 0.08);
-  --color-mac-border: rgba(255, 255, 255, 0.12);
+  --color-paper: #faf9f6;
+  --color-surface: #ffffff;
+  --color-ink: #1c1917;
+  --color-muted: #6f6a63;
+  --color-faint: #c9c3bb;
+  --color-line: #e8e3dc;
+  --color-divider: #f0ede8;
+  --color-tick: #d8d2c9;
+  --color-accent: #a23a08;
+  --color-accent-deep: #82300a;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-sans: var(--font-geist-sans), -apple-system, "Segoe UI", sans-serif;
 }
 
 html {
@@ -13,57 +22,86 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #09090b;
-  color: #f4f4f5;
-  overflow-x: hidden;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Rich Gradient Typography */
-.text-gradient-violet {
-  background: linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #818cf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.font-display {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
-.text-gradient-indigo {
-  background: linear-gradient(135deg, #ffffff 0%, #818cf8 50%, #6366f1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.u-link {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+}
+.u-link:hover {
+  text-decoration-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
-/* Bento Card Styling */
-.bento-card {
-  background: #121215;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.5rem;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
+.btn-accent {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.btn-accent:hover {
+  background: var(--color-accent-deep);
+}
+.btn-accent .arr {
+  transition: transform 0.15s ease;
+}
+.btn-accent:hover .arr {
+  transform: translateX(3px);
 }
 
-.bento-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.1);
-  transform: translateY(-2px);
+.btn-ghost {
+  border: 1px solid var(--color-line);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--color-ink);
+  background: var(--color-surface);
 }
 
-.bento-card-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+.tab-active {
+  box-shadow: inset 0 -2px 0 var(--color-accent);
 }
 
-/* Subtle Spotlight & Dot Grid */
-.glow-spotlight-violet {
-  background: radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 75%);
+input[type="range"].scrub {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1px;
+  background: var(--color-line);
+  outline: none;
 }
-
-.bg-dot-grid {
-  background-size: 32px 32px;
-  background-image: radial-gradient(circle at 1.5px 1.5px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+input[type="range"].scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-paper);
+  border: 1.5px solid var(--color-ink);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-
-
-
-
-
-
+input[type="range"].scrub::-webkit-slider-thumb:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+input[type="range"].scrub::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-paper);
+  border: 1.5px solid var(--color-ink);
+  cursor: pointer;
+}
